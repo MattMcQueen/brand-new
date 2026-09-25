@@ -83,7 +83,7 @@ def test_build_refuses_thin_data(tmp_path):
     data = tmp_path / "r.json"
     store.save(data, sample.releases(TODAY), datetime(2026, 9, 25, 5, 0, tzinfo=UK))
     out = tmp_path / "dist"
-    assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "1000"]) == 1
+    assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "1000"]) == 3
     assert not out.exists()
     assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "10"]) == 0
 
