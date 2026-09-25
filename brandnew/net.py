@@ -14,6 +14,10 @@ MIN_INTERVAL = {"musicbrainz.org": 1.1, "api.listenbrainz.org": 0.5, "www.google
 _last: dict[str, float] = {}
 
 
+class QuotaExhausted(RuntimeError):
+    """The API's daily quota is used up: retrying is pointless until it resets."""
+
+
 def _redact(url: str) -> str:
     return re.sub(r"key=[^&]+", "key=***", url)
 
@@ -24,6 +28,14 @@ def _wait_turn(host: str) -> None:
     if wait > 0:
         time.sleep(wait)
     _last[host] = time.monotonic()
+
+
+def _is_daily_quota(e: Exception) -> bool:
+    """Google says 'Queries per day' in the body of a 429 when the daily quota is gone."""
+    try:
+        return "per day" in e.read().decode("utf-8", "replace").lower()
+    except Exception:  # noqa: BLE001 - no readable body: treat it as an ordinary 429
+        return False
 
 
 def get_json(url: str, data: dict | list | None = None, tries: int = 4, timeout: int = 60):
@@ -42,6 +54,8 @@ def get_json(url: str, data: dict | list | None = None, tries: int = 4, timeout:
                 return json.load(r)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
             status = getattr(e, "code", None)
+            if status == 429 and _is_daily_quota(e):
+                raise QuotaExhausted(f"{_redact(url)[:100]}: daily quota used up") from None
             if attempt == tries or status in (400, 401, 403, 404):
                 raise RuntimeError(f"{_redact(url)[:150]} failed: {e}") from None
             delay = 5 * attempt if status in (429, 503) else 2 * attempt
