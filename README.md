@@ -37,6 +37,19 @@ GOOGLE_BOOKS_KEY_FILE=path/to/key.txt .venv/Scripts/python -m brandnew fetch
 - `AMAZON_TAG`: overrides the Associates tracking tag in `brandnew/config.py` (matsbasblo-21).
 - The first music fetch takes about 10 minutes (MusicBrainz allows 1 request a second); artist genres are then cached in `.cache/`.
 
+### In Docker
+
+Serves whatever is in `dist/` at http://localhost:8080 (this computer only). Build the site first;
+`build` with no `--data` uses `.cache/releases.json`, the last fetched data, so it makes no API calls.
+
+```bash
+.venv/Scripts/python -m brandnew build
+docker compose up -d      # start
+docker compose down       # stop and remove
+```
+
+After rebuilding, just refresh the page: `dist/` is mounted, not copied.
+
 ## Data sources
 
 - Music: [ListenBrainz](https://listenbrainz.org) and [MusicBrainz](https://musicbrainz.org) (CC0),

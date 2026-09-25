@@ -1,0 +1,13 @@
+# Serves the built site (dist/) at http://localhost:8080, for looking at it locally.
+# Build the site first (see README), then: docker compose up -d
+# dist/ is mounted read-only, so after a rebuild just refresh the page.
+services:
+  web:
+    image: nginx:alpine
+    container_name: brand-new-local
+    ports:
+      - "127.0.0.1:8080:80"  # this computer only
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: "no"
