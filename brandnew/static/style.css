@@ -266,10 +266,66 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .support-frame { flex: 1; background: #fff; }  /* Ko-fi's form is light */
 .support-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 .support-foot { margin: 0; padding: 8px 14px; font-size: .8rem; text-align: center; border-top: 1px solid var(--line); }
+/* Fun bits: countdown stickers, records sliding out of their sleeves, "Surprise me" */
+.sticker {
+  position: absolute; top: 8px; left: 6px; z-index: 3; padding: 3px 9px; border-radius: 999px;
+  background: var(--accent); color: var(--accent-fg); border: 2px solid #fff;
+  font-size: .75rem; font-weight: 700; white-space: nowrap; transform: rotate(-6deg);
+  box-shadow: 0 2px 6px rgb(0 0 0 / .3);
+}
+.cover img { z-index: 1; transition: transform .35s ease; }
+.vinyl {
+  position: absolute; top: 6%; left: 6%; width: 88%; aspect-ratio: 1; border-radius: 50%; z-index: 0;
+  /* label and spindle hole, then a sheen, over the grooves. The light rim keeps it visible on dark backgrounds. */
+  background: radial-gradient(circle, #eee 0 3%, var(--accent) 3.5% 17%, #111 17.5% 19%, transparent 19.5%),
+              conic-gradient(from 20deg, transparent 0 8%, rgb(255 255 255 / .16) 13%, transparent 19% 58%,
+                             rgb(255 255 255 / .16) 63%, transparent 69%),
+              repeating-radial-gradient(circle, #1a1a1a 0 2px, #333 2px 3px);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--fg) 30%, transparent), 0 2px 8px rgb(0 0 0 / .4);
+  transition: transform .35s ease;
+}
+@media (hover: hover) {
+  .card:hover .cover-music img { transform: translateX(-18%) scale(.84); }
+  .card:hover .vinyl { transform: translateX(24%) rotate(60deg); }
+  .cover-books { perspective: 700px; }
+  .card:hover .cover-books img { transform: rotateY(-14deg) scale(1.03); }
+}
+.surprise-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 16px; border-radius: 999px;
+  border: 2px solid var(--accent); background: var(--accent-soft); color: var(--fg); font: inherit; font-weight: 700; cursor: pointer;
+}
+.surprise-btn:hover { background: var(--accent); color: var(--accent-fg); }
+.surprise-btn .icon { width: 20px; height: 20px; transition: transform .4s ease; }
+.surprise-btn:hover .icon { transform: rotate(180deg); }
+.surprise {
+  width: min(320px, calc(100vw - 32px)); margin: auto; padding: 20px; border-radius: 14px; text-align: center;
+  border: 1px solid color-mix(in srgb, var(--fg) 22%, transparent);  /* stands out on the dark theme too */
+  background: var(--surface); color: var(--fg); box-shadow: 0 8px 30px rgb(0 0 0 / .4);
+}
+.surprise::backdrop { background: rgb(0 0 0 / .45); }
+.surprise-close { position: absolute; top: 8px; right: 8px; }
+.surprise-cover { width: 150px; margin: 4px auto 12px; }
+.surprise-cover img { display: block; width: 100%; border-radius: 6px; box-shadow: 0 4px 14px rgb(0 0 0 / .35); background: var(--accent-soft); }
+.surprise.is-shuffling .surprise-cover img { animation: flick .1s ease-in-out infinite alternate; }
+@keyframes flick { from { transform: rotate(-4deg) scale(.97); } to { transform: rotate(4deg) scale(1.02); } }
+.surprise.is-shuffling .surprise-title, .surprise.is-shuffling .surprise-by,
+.surprise.is-shuffling .surprise-date, .surprise.is-shuffling .surprise-actions { visibility: hidden; }
+.surprise-kicker { margin: 0; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.surprise-title { margin: 4px 0 0; font-family: ui-serif, Georgia, serif; font-size: 1.2rem; font-weight: 700; overflow-wrap: anywhere; }
+.surprise-by { margin: 2px 0 0; }
+.surprise-date { margin: 2px 0 14px; color: var(--muted); font-size: .9rem; }
+.surprise-actions { display: flex; gap: 8px; }
+.surprise-actions > * { flex: 1; margin: 0; }
+.card.is-picked { outline: 3px solid var(--accent); outline-offset: 2px; animation: picked 1s ease 2; }
+@keyframes picked { 50% { transform: scale(1.04); } }
+
 .updated { font-size: .85rem; color: var(--muted); }
 
-/* The Support me panel still sweeps open, to match the blog's Ko-fi widget: one short movement the visitor asked for. */
-@media (prefers-reduced-motion: reduce) { :not(.support-panel) { transition: none !important; } }
+/* Short movements the visitor sets off themselves (opening Support me, hovering over a cover, "Surprise me")
+   still play, as the blog's Ko-fi widget does; everything else keeps still. */
+@media (prefers-reduced-motion: reduce) {
+  :not(.support-panel, .cover img, .vinyl, .surprise-btn .icon) { transition: none !important; }
+}
 
 /* "Running late" notice (see app.js) */
 .stale {

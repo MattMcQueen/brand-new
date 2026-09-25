@@ -105,3 +105,84 @@
     if (img.complete && !img.naturalWidth) drop(img);  // failed before this script ran
   });
 })();
+
+// "Surprise me": picks a random release from the last week (with a cover) and shows it, after a
+// quick shuffle through other covers. The data file is only fetched on the first click.
+(function () {
+  var buttons = document.querySelectorAll("[data-surprise]");
+  var box = document.getElementById("surprise");
+  if (!buttons.length || !box || typeof box.showPopover !== "function" || !window.fetch) return;
+  var img = box.querySelector(".surprise-cover img");
+  var go = box.querySelector(".surprise-go");
+  var data = null, kind = "", timer = null, runs = 0;
+
+  function load() {
+    if (data) return Promise.resolve(data);
+    return fetch("/data/releases.json").then(function (r) { return r.json(); }).then(function (d) { data = d; return d; });
+  }
+  // The same "last week" as the pages: the seven days up to the day the data was built.
+  function choices() {
+    var end = data.generated.slice(0, 10);
+    var start = new Date(end + "T00:00:00Z");
+    start.setUTCDate(start.getUTCDate() - 7);
+    start = start.toISOString().slice(0, 10);
+    return data.releases.filter(function (r) {
+      return r.cover && r.genres.length && r.date >= start && r.date <= end && (!kind || r.kind === kind);
+    });
+  }
+  function any(list) { return list[Math.floor(Math.random() * list.length)]; }
+  function reveal(r) {
+    box.querySelector(".surprise-title").textContent = r.title;
+    box.querySelector(".surprise-by").textContent = r.by;
+    box.querySelector(".surprise-date").textContent = "Out " + new Date(r.date + "T00:00:00Z")
+      .toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+    go.href = "/" + r.kind + "/" + r.genres[0] + "/#pick-" + encodeURIComponent(r.id);
+    go.setAttribute("aria-label", "See " + r.title + " by " + r.by);
+    box.classList.remove("is-shuffling");
+  }
+  // Shuffles covers until at least ten have flicked past AND the chosen cover has loaded, so the
+  // cover shown always belongs to the title. A cover that fails to load means choosing again.
+  function surprise() {
+    load().then(function () {
+      var list = choices();
+      if (!list.length) return;
+      var run = ++runs, flips = 0, landed = null;
+      if (!box.matches(":popover-open")) box.showPopover();
+      box.classList.add("is-shuffling");
+      clearInterval(timer);
+      timer = setInterval(function () {
+        if (run !== runs) return;
+        if (++flips >= 10 && landed) {
+          clearInterval(timer);
+          img.src = landed.cover;
+          reveal(landed);
+        } else {
+          img.src = any(list).cover;
+        }
+      }, 90);
+      (function choose() {
+        if (!list.length) { clearInterval(timer); box.hidePopover(); return; }  // no cover would load
+        var pick = any(list), probe = new Image();
+        probe.referrerPolicy = "no-referrer";
+        probe.onload = function () { if (run === runs) landed = pick; };
+        probe.onerror = function () { list = list.filter(function (r) { return r !== pick; }); choose(); };
+        probe.src = pick.cover;
+      })();
+    }).catch(function () { /* no data: the button just does nothing */ });
+  }
+  buttons.forEach(function (b) {
+    b.hidden = false;
+    b.addEventListener("click", function () { kind = b.dataset.surprise; surprise(); });
+  });
+  box.querySelector(".surprise-again").addEventListener("click", surprise);
+})();
+
+// Arriving from "Surprise me" (#pick-<id>): scroll to that release's card and make it wiggle.
+(function () {
+  if (location.hash.indexOf("#pick-") !== 0 || !window.CSS || !CSS.escape) return;
+  var id = decodeURIComponent(location.hash.slice(6));
+  var card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
+  if (!card) return;
+  card.scrollIntoView({ block: "center" });
+  card.classList.add("is-picked");
+})();
