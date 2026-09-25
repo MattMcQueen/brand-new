@@ -152,6 +152,8 @@ def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(tmp_path):
         assert "<iframe" not in html and "ko-fi.com/cdn" not in html and "storage.ko-fi.com" not in html
     assert 'class="kofi-line"' in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert 'class="kofi-line"' in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "Found something new? <a" in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "Support me with a coffee on Ko-fi →" in (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'class="kofi-line"' not in (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'class="kofi-line"' not in (tmp_path / "404.html").read_text(encoding="utf-8")
     # The floating button replaced the footer's Ko-fi link.
