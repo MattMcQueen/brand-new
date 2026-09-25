@@ -2,51 +2,99 @@
 {% block title %}About | {{ config.SITE_NAME }}{% endblock %}
 {% block description %}What Brand New is, what it can and can't tell you, how its affiliate links work, and where its data comes from.{% endblock %}
 {% block kofi_line %}{% endblock %}
+{% macro chips(shops_) -%}
+<ul class="shop-chips" role="list">{% for s in shops_ %}<li>{{ s.name }}</li>{% endfor %}</ul>
+{%- endmacro %}
 {% block main %}
-<article class="prose">
-  <h1>About Brand New</h1>
-  <p>Brand New lists the books and albums that came out in the last week (or the last two weeks, if a genre had a quiet week) and those due over the next three months, by genre. The lists are rebuilt automatically every morning, UK time.</p>
-  <p>It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
+<article class="about">
+  <div class="intro">
+    <h1>About Brand New</h1>
+    <p class="lede">Brand New lists the books and albums that came out in the last week (or the last two weeks, if a genre had a quiet week) and those due over the next three months, by genre.</p>
+    <p>The lists are rebuilt automatically every morning, UK time. It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
+  </div>
+  <nav class="on-page" aria-label="On this page">
+    <a href="#limitations">What it can't do</a>
+    <a href="#affiliate-links">Amazon links</a>
+    <a href="#other-shops">Other shops</a>
+    <a href="#data">Where the data comes from</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#support">Support the site</a>
+  </nav>
 
-  <h2 id="limitations">What this site does, and what it doesn't</h2>
-  <p>Brand New is for finding out what's new and what's coming soon, and for giving you a quick way to look for it at different shops. That's all it tries to do.</p>
-  <ul>
-    <li><strong>It isn't a price comparison site.</strong> It doesn't show prices, and it can't tell you where something is cheapest.</li>
-    <li><strong>It can't tell you who sells it or has it in stock.</strong> The site doesn't check any shop, so it doesn't know whether a shop sells a particular book or album, or has it in stock. Every link is a starting point, not a promise.</li>
-    <li><strong>Most links open a search.</strong> Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site, for the title and author or artist. Those searches may find other editions, or nothing at all. For books that are UK editions, going by the publisher and ISBN, the Amazon, {{ bookshops|selectattr("isbn_page")|names }} links go straight to the book's page, and the {{ bookshops|rejectattr("isbn_page")|names }} links search for its ISBN. Even then, the shop may not have it.</li>
-    <li><strong>Not every book comes in every format.</strong> Many books never come out as ebooks or audiobooks, or they arrive later, and the site can't tell which.</li>
-    <li><strong>Dates change, and the lists aren't complete.</strong> Release dates move, especially for books, and the lists are built from public data that misses some releases. Check the date with the shop before you order.</li>
-  </ul>
+  <section aria-labelledby="limitations">
+    <h2 id="limitations">What this site does, and what it doesn't</h2>
+    <p>Brand New is for finding out what's new and what's coming soon, and for giving you a quick way to look for it at different shops. That's all it tries to do.</p>
+    <ul class="facts" role="list">
+      <li><h3>It isn't a price comparison site</h3>
+        <p>It doesn't show prices, and it can't tell you where something is cheapest.</p></li>
+      <li><h3>It can't tell you who sells it or has it in stock</h3>
+        <p>The site doesn't check any shop, so it doesn't know whether a shop sells a particular book or album, or has it in stock. Every link is a starting point, not a promise.</p></li>
+      <li class="wide"><h3>Most links open a search</h3>
+        <p>Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site, for the title and author or artist. Those searches may find other editions, or nothing at all.</p>
+        <p>For books that are UK editions, going by the publisher and ISBN, the Amazon, {{ bookshops|selectattr("isbn_page")|names }} links go straight to the book's page, and the {{ bookshops|rejectattr("isbn_page")|names }} links search for its ISBN. Even then, the shop may not have it.</p></li>
+      <li><h3>Not every book comes in every format</h3>
+        <p>Many books never come out as ebooks or audiobooks, or they arrive later, and the site can't tell which.</p></li>
+      <li><h3>Dates change, and the lists aren't complete</h3>
+        <p>Release dates move, especially for books, and the lists are built from public data that misses some releases. Check the date with the shop before you order.</p></li>
+    </ul>
+  </section>
 
-  <h2 id="affiliate-links">How the Amazon links work</h2>
-  <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
-  <p>The "on Amazon UK" buttons, and the "Kindle" and "Audible" links under them, are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
-  <p>If you follow one of those links and then buy something, Amazon pays me a small commission, a percentage of the price, as thanks for sending you. It generally counts anything you buy within 24 hours of clicking, not only the item you clicked on.</p>
-  <p><strong>You don't pay a penny more.</strong> The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p>
-  <p>You never have to use them. If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p>
+  <section aria-labelledby="affiliate-links">
+    <h2 id="affiliate-links">How the Amazon links work</h2>
+    <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
+    <p>The "on Amazon UK" buttons, and the smaller "Kindle" and "Audible" buttons under them, are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
+    <ul class="facts facts-3" role="list">
+      <li><h3>How I'm paid</h3>
+        <p>If you follow one of those links and then buy something, Amazon pays me a small commission, a percentage of the price, as thanks for sending you. It generally counts anything you buy within 24 hours of clicking, not only the item you clicked on.</p></li>
+      <li><h3>You don't pay a penny more</h3>
+        <p>The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p></li>
+      <li><h3>You never have to use them</h3>
+        <p>If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p></li>
+    </ul>
+  </section>
 
-  <h2 id="other-shops">Other shops</h2>
-  <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button, and every album a "Listen & buy" button.</p>
-  <ul>
-    <li>Books: {{ bookshops|names }}.</li>
-    <li>Ebooks and audiobooks: {{ digital_shops|names }}. Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</li>
-    <li>Streaming: albums have a "Listen & buy" button with {{ streaming|names }}. These open a search for the album. Until release day it may only find singles, or a pre-save, so for albums that aren't out yet the record shops come first.</li>
-    <li>Albums: {{ record_shops|names }}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
-  </ul>
-  <p>These are <strong>not affiliate links</strong>, Amazon Music included: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
+  <section aria-labelledby="other-shops">
+    <h2 id="other-shops">Other shops</h2>
+    <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button, and every album a "Listen & buy" button.</p>
+    <dl class="shop-groups">
+      <div><dt>Books</dt><dd>{{ chips(bookshops) }}</dd></div>
+      <div><dt>Ebooks and audiobooks</dt><dd>{{ chips(digital_shops) }}
+        <p>Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</p></dd></div>
+      <div><dt>Streaming</dt><dd>{{ chips(streaming) }}
+        <p>These open a search for the album. Until release day it may only find singles, or a pre-save, so for albums that aren't out yet the record shops come first.</p></dd></div>
+      <div><dt>Record shops</dt><dd>{{ chips(record_shops) }}
+        <p>These open a search on the shop's site, as the album links to Amazon UK do.</p></dd></div>
+    </dl>
+    <p class="callout">These are <strong>not affiliate links</strong>, Amazon Music included: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
+  </section>
 
-  <h2>Other ways to help</h2>
-  <p>If you'd like to support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>. Thank you!</p>
+  <section aria-labelledby="data">
+    <h2 id="data">Where the data comes from</h2>
+    <ul class="facts" role="list">
+      <li class="wide"><h3>Albums</h3>
+        <p>The <a href="https://listenbrainz.org/explore/fresh-releases/">ListenBrainz fresh releases</a> feed, ranked by how many ListenBrainz listeners each artist has, with genres from <a href="https://musicbrainz.org">MusicBrainz</a>. MusicBrainz and ListenBrainz data is released under <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> by the <a href="https://metabrainz.org">MetaBrainz Foundation</a>.</p></li>
+      <li><h3>Album covers</h3>
+        <p>The <a href="https://coverartarchive.org">Cover Art Archive</a>.</p></li>
+      <li><h3>Books and book covers</h3>
+        <p>The <a href="https://books.google.co.uk">Google Books</a> API.</p></li>
+    </ul>
+  </section>
 
-  <h2>Where the data comes from</h2>
-  <ul>
-    <li>Albums: the <a href="https://listenbrainz.org/explore/fresh-releases/">ListenBrainz fresh releases</a> feed, ranked by how many ListenBrainz listeners each artist has, with genres from <a href="https://musicbrainz.org">MusicBrainz</a>. MusicBrainz and ListenBrainz data is released under <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> by the <a href="https://metabrainz.org">MetaBrainz Foundation</a>.</li>
-    <li>Album covers: the <a href="https://coverartarchive.org">Cover Art Archive</a>.</li>
-    <li>Books and book covers: the <a href="https://books.google.co.uk">Google Books</a> API.</li>
-  </ul>
+  <section aria-labelledby="privacy">
+    <h2 id="privacy">Privacy</h2>
+    <ul class="points">
+      <li>This site doesn't use cookies, analytics or adverts.</li>
+      <li>If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere.</li>
+      <li>Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address.</li>
+      <li>Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies.</li>
+      <li>The "Support me" button loads Ko-fi's donation form only when you click it; from then on, <a href="https://more.ko-fi.com/privacy">Ko-fi's privacy policy</a> applies to that form.</li>
+    </ul>
+  </section>
 
-  <h2>Privacy</h2>
-  <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies. The "Support me" button loads Ko-fi's donation form only when you click it; from then on, <a href="https://more.ko-fi.com/privacy">Ko-fi's privacy policy</a> applies to that form.</p>
+  <section aria-labelledby="support">
+    <h2 id="support">Other ways to help</h2>
+    <p>If you'd like to support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>. Thank you!</p>
+  </section>
 
   <p class="updated">Last updated {{ updated }}.</p>
 </article>
