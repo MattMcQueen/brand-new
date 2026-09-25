@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card, tiles with context %}
+{% from "_macros.html" import card, tiles, surprise_button with context %}
 {% set noun = "books" if kind == "books" else "albums" %}
 {% block title %}New {{ noun }} by genre: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
 {% block description %}{{ recent.releases|length }} new {{ noun }} out {{ "this week" if recent.days == config.PAST_DAYS else "in the last two weeks" }}, across every genre, plus what's due over the next three months.{% endblock %}
@@ -7,6 +7,7 @@
 <div class="intro">
   <h1>{{ kind_names[kind] }}</h1>
   <p>Every new {{ noun[:-1] }} from the last week, across all genres. Choose a genre to see what's coming soon too.</p>
+  {{ surprise_button(kind) }}
 </div>
 {{ tiles(kind, pages_of_kind, "Genres") }}
 

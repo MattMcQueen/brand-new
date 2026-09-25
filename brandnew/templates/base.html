@@ -85,5 +85,19 @@
   <p class="support-foot"><a href="{{ config.KOFI_URL }}" rel="noopener" target="_blank">Open ko-fi.com/{{ config.KOFI_URL.rsplit("/", 1)[1] }} in a new tab</a></p>
 </div>
 </aside>
+{# The "Surprise me" result (app.js fills it in) #}
+<div class="surprise" id="surprise" popover aria-labelledby="surprise-title">
+  <button class="icon-btn surprise-close" type="button" popovertarget="surprise" popovertargetaction="hide"
+          title="Close" aria-label="Close">{{ icon("close") }}</button>
+  <div class="surprise-cover"><img alt="" referrerpolicy="no-referrer"></div>
+  <p class="surprise-kicker">Why not try&hellip;</p>
+  <p class="surprise-title" id="surprise-title"></p>
+  <p class="surprise-by"></p>
+  <p class="surprise-date"></p>
+  <div class="surprise-actions">
+    <a class="buy surprise-go" href="/">See it</a>
+    <button class="more-shops surprise-again" type="button">{{ icon("dice") }}<span>Try another</span></button>
+  </div>
+</div>
 </body>
 </html>

@@ -56,7 +56,7 @@ def test_build_site(tmp_path):
 def test_cards_have_the_same_parts_so_rows_line_up(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     html = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
-    cards = re.findall(r'<li class="card">(.*?)\n</li>', html, re.S)  # the card's own </li> is on its own line
+    cards = re.findall(r'<li class="card" data-id="[^"]*">(.*?)\n</li>', html, re.S)  # the card's own </li> is on its own line
     parts = [re.findall(r'^  <\w+ class="([\w-]+)', c, re.M) for c in cards]
     assert cards and all(p == ["cover", "card-title", "card-by", "card-date", "card-extra", "card-buy", "card-source"]
                          for p in parts)
@@ -171,7 +171,7 @@ def test_books_and_music_have_their_own_pages(tmp_path):
     assert 'href="/books/" aria-current="page"' in books
     # every recent book once, even when it's in more than one genre
     recent_ids = {r.id for r in render.recent([r for r in releases if r.kind == "books"], TODAY).releases}
-    assert books.count('<li class="card">') == len(recent_ids) > 0
+    assert len(re.findall(r'<li class="card" data-id=', books)) == len(recent_ids) > 0
     music = (tmp_path / "music" / "index.html").read_text(encoding="utf-8")
     assert "powered by Google" not in music and 'href="/music/rock/"' in music
     genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
@@ -294,3 +294,33 @@ def test_tiles_show_a_cover_fan_or_the_kind_icon(tmp_path):
         assert imgs <= 3 and (imgs or f'href="#icon-{kind}"' in fan)
         assert imgs == fan.count('alt=""') == fan.count('referrerpolicy="no-referrer"')
     assert '<span class="tile-fan' in (tmp_path / "books" / "index.html").read_text(encoding="utf-8")
+
+
+def test_countdown_stickers():
+    days = {n: render.countdown(TODAY + timedelta(days=n), TODAY) for n in (-3, -2, -1, 0, 1, 2, 7, 8)}
+    assert days == {-3: None, -2: "Just out", -1: "Just out", 0: "Out today!", 1: "Out tomorrow",
+                    2: "2 days to go", 7: "7 days to go", 8: None}
+
+
+def test_cards_get_stickers_and_albums_get_a_record(tmp_path):
+    releases = [book(0, title="Today"), book(5, title="Soon"), book(30, title="Later"),
+                Release(kind="music", id="m1", title="Album", by="A", date=TODAY, source="test", amazon_url="",
+                        genres=["rock"], cover="https://x/1.jpg")]
+    render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    horror = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    cards = dict(re.findall(r'<li class="card" data-id="([^"]+)">(.*?)\n</li>', horror, re.S))
+    assert '<span class="sticker" aria-hidden="true">Out today!</span>' in cards["Today"]
+    assert "5 days to go" in cards["Soon"] and 'class="sticker"' not in cards["Later"]
+    assert 'class="vinyl"' not in horror
+    rock = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert rock.count('<span class="vinyl" aria-hidden="true"></span>') == rock.count('<li class="card"') == 1
+
+
+def test_surprise_me_is_on_the_home_and_kind_pages(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    for page, kind in (("index.html", ""), ("books/index.html", "books"), ("music/index.html", "music")):
+        html = (tmp_path / page).read_text(encoding="utf-8")
+        assert re.search(rf'<button class="surprise-btn" type="button" data-surprise="{kind}" hidden', html)
+        assert '<div class="surprise" id="surprise" popover' in html
+    assert "data-surprise" not in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert (tmp_path / "data" / "releases.json").exists()  # what the button picks from

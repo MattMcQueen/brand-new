@@ -72,6 +72,20 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     return GenrePage(genre, past, past_days, months)
 
 
+def countdown(d: date, today: date) -> str | None:
+    """The sticker on a release's cover, if it's close to its release date."""
+    days = (d - today).days
+    if days == 0:
+        return "Out today!"
+    if days == 1:
+        return "Out tomorrow"
+    if 2 <= days <= 7:
+        return f"{days} days to go"
+    if -2 <= days < 0:
+        return "Just out"
+    return None
+
+
 def pick_tile_covers(pages: list[GenrePage], per_tile: int = 3) -> None:
     """Give each genre's tile up to `per_tile` covers: what's just out first, then what's next.
     A release in several genres would otherwise front every one of their tiles, so covers already
@@ -166,7 +180,7 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["json_ld"] = json_ld
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
-    env.globals.update(config=config, genre_url=genre_url, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
+    env.globals.update(config=config, genre_url=genre_url, countdown=countdown, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
                        other_shops=lambda r: shops.groups_for(r.kind, r.id, r.title, r.by, r.uk_edition),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
@@ -187,7 +201,7 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
     pages = {g.slug + g.kind: genre_page(g, releases, today) for g in config.ALL_GENRES}
     for kind in ("books", "music"):
         pick_tile_covers([pages[g.slug + g.kind] for g in config.genres_of(kind)])
-    common = dict(updated=format_updated(generated), generated_iso=generated.isoformat(), pages=pages,
+    common = dict(today=today, updated=format_updated(generated), generated_iso=generated.isoformat(), pages=pages,
                   book_pages=[pages[g.slug + g.kind] for g in config.BOOK_GENRES],
                   music_pages=[pages[g.slug + g.kind] for g in config.MUSIC_GENRES])
     written = []
