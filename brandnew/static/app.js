@@ -95,3 +95,13 @@
   var limit = Number(note.dataset.staleHours) * 3600 * 1000;
   if (!isNaN(generated) && Date.now() - generated > limit) note.hidden = false;
 })();
+
+// Genre tiles: a cover that fails to load (the image hosts sometimes have errors) is dropped from
+// the fan, rather than leaving a broken-image box. The genre pages have a placeholder instead.
+(function () {
+  function drop(img) { if (img.closest && img.closest(".tile-fan")) img.remove(); }
+  document.addEventListener("error", function (e) { drop(e.target); }, true);
+  document.querySelectorAll(".tile-fan img").forEach(function (img) {
+    if (img.complete && !img.naturalWidth) drop(img);  // failed before this script ran
+  });
+})();

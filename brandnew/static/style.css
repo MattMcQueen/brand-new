@@ -110,6 +110,22 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   color: var(--fg); text-decoration: none; transition: border-color .15s, transform .15s;
 }
 .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+/* The cover fan: up to three covers, overlapping and tilted, spreading a little on hover */
+.tile-fan { display: flex; align-items: flex-end; height: 122px; margin: 0 0 8px 4px; }
+.tile-fan img {
+  width: 76px; height: 114px; object-fit: cover; border-radius: 4px; background: var(--accent-soft);
+  border: 2px solid var(--surface); box-shadow: 0 2px 8px rgb(0 0 0 / .25); transition: transform .2s ease;
+}
+.tile-fan-music img { width: 92px; height: 92px; }  /* three still fit the narrowest tile (198px inside) */
+.tile-fan img + img { margin-left: -24px; }
+.tile-fan-music img + img { margin-left: -42px; }
+.tile-fan img:nth-child(1) { transform: rotate(-7deg); }
+.tile-fan img:nth-child(2) { transform: translateY(-4px); z-index: 1; }
+.tile-fan img:nth-child(3) { transform: rotate(7deg); }
+.tile:hover .tile-fan img:nth-child(1) { transform: translateX(-6px) rotate(-11deg); }
+.tile:hover .tile-fan img:nth-child(2) { transform: translateY(-8px); }
+.tile:hover .tile-fan img:nth-child(3) { transform: translateX(6px) rotate(11deg); }
+.tile-fan .icon { width: 48px; height: 48px; margin: 0 0 20px 8px; color: var(--accent); opacity: .5; }
 .tile-name { font-family: ui-serif, Georgia, serif; font-size: 1.2rem; font-weight: 700; }
 .tile-blurb { color: var(--muted); font-size: .92rem; }
 .tile-count { margin-top: auto; padding-top: 6px; font-size: .85rem; color: var(--accent); font-weight: 600; }
