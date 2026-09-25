@@ -372,3 +372,17 @@ def test_names():
         def __init__(self, name): self.name = name
     assert render.names([]) == "" and render.names([S("A")]) == "A"
     assert render.names([S("A"), S("B")]) == "A and B" and render.names(map(S, "ABC")) == "A, B and C"
+
+
+def test_streaming_links_for_upcoming_albums_come_after_record_shops(tmp_path):
+    def album(days, title):
+        return Release(kind="music", id=title, title=title, by="Band", date=TODAY + timedelta(days=days),
+                       source="test", amazon_url="https://www.amazon.co.uk/s?k=x", genres=["rock"])
+    render.build([album(0, "Out Today"), album(7, "Next Week")], datetime(2026, 9, 25, 5, 31, tzinfo=UK),
+                 tmp_path, TODAY)
+    html = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    popovers = dict(re.findall(r'<strong>([^<]+)</strong><br>other places.*?</div>(.*?)</div>', html, re.S))
+    headings = {t: re.findall(r'<p class="shops-group">([^<]+)</p>', p) for t, p in popovers.items()}
+    assert headings == {"Out Today": ["Listen", "Record shops"], "Next Week": ["Record shops", "Listen"]}
+    assert "Out on Fri 2 Oct 2026. Until then you may only find singles, or a pre-save." in popovers["Next Week"]
+    assert "Out on" not in popovers["Out Today"]

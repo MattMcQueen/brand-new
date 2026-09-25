@@ -66,7 +66,8 @@ STREAMING = (
     Shop("Deezer", "https://www.deezer.com/en/search/{qp}/album"),
     Shop("Bandcamp", "https://bandcamp.com/search?q={q}&item_type=a"),
 )
-STREAMING_NOTE = "Albums that aren't out yet usually can't be streamed until release day."
+# Before release day a streaming search may only find singles, or a pre-save.
+UPCOMING_NOTE = "Out on {date}. Until then you may only find singles, or a pre-save."
 
 
 def _book_query(title: str, by: str) -> str:
@@ -102,10 +103,12 @@ def _group(heading: str, shops: tuple[Shop, ...], links: list[tuple[str, str]], 
     return Group(heading, [(name, url, s.formats) for s, (name, url) in zip(shops, links)], note)
 
 
-def groups_for(kind: str, id_: str, title: str, by: str, uk_edition: bool) -> list[Group]:
-    """What the "Other shops" popover lists for a release."""
+def groups_for(kind: str, id_: str, title: str, by: str, uk_edition: bool, out_on: str = "") -> list[Group]:
+    """What the "Other shops" popover lists for a release. `out_on` is the date (as the site shows
+    it) of an album that isn't out yet: its record shops come first, as they can take pre-orders."""
     if kind == "books":
         return [_group("Bookshops", BOOKSHOPS, book_links(id_, title, by, uk_edition)),
                 _group("Ebooks & audiobooks", DIGITAL_SHOPS, digital_links(title, by), DIGITAL_NOTE)]
-    return [_group("Listen", STREAMING, listen_links(by, title), STREAMING_NOTE),
-            _group("Record shops", RECORD_SHOPS, album_links(by, title))]
+    listen = _group("Listen", STREAMING, listen_links(by, title), UPCOMING_NOTE.format(date=out_on) if out_on else "")
+    buy = _group("Record shops", RECORD_SHOPS, album_links(by, title))
+    return [buy, listen] if out_on else [listen, buy]
