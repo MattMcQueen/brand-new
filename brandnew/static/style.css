@@ -170,6 +170,15 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .hue-5 { --mc1: #4d7c0f; --mc2: #bef264; }
 .hue-6 { --mc1: #a16207; --mc2: #fde68a; }
 .hue-7 { --mc1: #334155; --mc2: #94a3b8; }
+/* The block of pages behind a book's cover: only seen when the book turns (hover). The far edge
+   is a little shorter, for perspective. */
+.cover-books::before {
+  content: ""; position: absolute; z-index: 0; top: 4%; bottom: 4%; right: 2%; width: 24%; opacity: 0;
+  clip-path: polygon(0 0, 100% 5%, 100% 95%, 0 100%);
+  border-radius: 0 3px 3px 0; box-shadow: inset -2px 0 4px rgb(0 0 0 / .25);
+  background: repeating-linear-gradient(to right, #f6f1e7 0 1.5px, #cfc6b4 1.5px 2.5px);
+  transition: opacity .2s ease;
+}
 .made-cover {
   position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden;
   background: var(--mc1); transition: transform .35s ease;
@@ -313,7 +322,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .cover img { z-index: 1; transition: transform .35s ease; }
 .vinyl {
-  position: absolute; top: 6%; left: 6%; width: 88%; aspect-ratio: 1; border-radius: 50%; z-index: 0;
+  position: absolute; top: 12%; left: 12%; width: 76%; aspect-ratio: 1; border-radius: 50%; z-index: 0;  /* a little smaller than the sleeve when it shrinks aside */
   /* label and spindle hole, then a sheen, over the grooves. The light rim keeps it visible on dark backgrounds. */
   background: radial-gradient(circle, #eee 0 3%, var(--accent) 3.5% 17%, #111 17.5% 19%, transparent 19.5%),
               conic-gradient(from 20deg, transparent 0 8%, rgb(255 255 255 / .16) 13%, transparent 19% 58%,
@@ -323,10 +332,13 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   transition: transform .35s ease;
 }
 @media (hover: hover) {
-  .card:hover .cover-music img, .card:hover .cover-music .made-cover { transform: translateX(-18%) scale(.84); }
-  .card:hover .vinyl { transform: translateX(24%) rotate(60deg); }
-  .cover-books { perspective: 700px; }
-  .card:hover .cover-books img, .card:hover .cover-books .made-cover { transform: rotateY(-14deg) scale(1.03); }
+  .card:hover .cover-music img, .card:hover .cover-music .made-cover { transform: translateX(-16%) scale(.8); }
+  .card:hover .vinyl { transform: translateX(26%) rotate(60deg); }
+  /* Books turn on the spine, showing the edges of their pages */
+  .cover-books { perspective: 600px; }
+  .cover-books img, .cover-books .made-cover { transform-origin: left center; }
+  .card:hover .cover-books img, .card:hover .cover-books .made-cover { transform: rotateY(28deg); box-shadow: 4px 0 10px rgb(0 0 0 / .3); }
+  .card:hover .cover-books::before { opacity: 1; }
 }
 .surprise-btn {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 16px; border-radius: 999px;
