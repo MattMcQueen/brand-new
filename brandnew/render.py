@@ -2,6 +2,7 @@
 import hashlib
 import json
 import shutil
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from itertools import count, groupby
@@ -111,6 +112,12 @@ def lower_name(name: str) -> str:
     return " ".join(w if len(w) > 1 and w.isupper() else w.lower() for w in name.split())
 
 
+def names(shops_: Iterable) -> str:
+    """Shop names as a list in a sentence: "A, B and C"."""
+    n = [s.name for s in shops_]
+    return " and ".join(filter(None, [", ".join(n[:-1]), n[-1]])) if n else ""
+
+
 def logo_svg() -> str:
     """The favicon, inline in the header, so the two can never drift apart."""
     svg = (STATIC / "favicon.svg").read_text(encoding="utf-8").strip()
@@ -185,6 +192,7 @@ def _env(amazon_tag: str | None) -> Environment:
                       trim_blocks=True, lstrip_blocks=True)
     env.filters["uk_date"] = format_date
     env.filters["lower_name"] = lower_name
+    env.filters["names"] = names
     env.filters["json_ld"] = json_ld
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)

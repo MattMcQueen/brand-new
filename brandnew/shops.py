@@ -11,7 +11,8 @@ from urllib.parse import quote, quote_plus
 class Shop:
     name: str
     search: str     # "{q}" is replaced with the search words, url-encoded ("{qp}": encoded for a path)
-    by_isbn: str = ""  # books: "{isbn}" is replaced; each of these lands on the book's own page
+    by_isbn: str = ""  # books: "{isbn}" is replaced
+    isbn_page: bool = False  # by_isbn is the book's own page, not a search for the ISBN
     formats: str = ""  # shown next to the name, e.g. "ebooks & audiobooks"
 
 
@@ -26,11 +27,11 @@ BOOKSHOPS = (
     Shop("Waterstones", "https://www.waterstones.com/books/search/term/{q}",
          by_isbn="https://www.waterstones.com/books/search/term/{isbn}"),
     Shop("Bookshop.org", "https://uk.bookshop.org/search?keywords={q}",
-         by_isbn="https://uk.bookshop.org/book/{isbn}"),
+         by_isbn="https://uk.bookshop.org/book/{isbn}", isbn_page=True),
     Shop("Foyles", "https://www.foyles.co.uk/search?term={q}",
          by_isbn="https://www.foyles.co.uk/search?term={isbn}"),
     Shop("Blackwell's", "https://blackwells.co.uk/bookshop/search/?keyword={q}",
-         by_isbn="https://blackwells.co.uk/bookshop/product/{isbn}"),
+         by_isbn="https://blackwells.co.uk/bookshop/product/{isbn}", isbn_page=True),
     Shop("Hive", "https://www.hive.co.uk/Search/Keyword?keyword={q}",
          by_isbn="https://www.hive.co.uk/Search/Keyword?keyword={isbn}"),
 )
@@ -77,8 +78,9 @@ def _searches(shops: tuple[Shop, ...], words: str) -> list[tuple[str, str]]:
 
 
 def book_links(isbn: str | None, title: str, by: str, uk_edition: bool) -> list[tuple[str, str]]:
-    """(shop name, url) pairs. Like the Amazon links: straight to the book for a UK edition,
-    otherwise a title + author search, because shops only know the edition they sell."""
+    """(shop name, url) pairs. Like the Amazon links, a UK edition is looked up by its ISBN (the
+    book's own page where the shop has one, see isbn_page), anything else by title + author,
+    because shops only know the edition they sell."""
     if uk_edition and isbn:
         return [(s.name, s.by_isbn.format(isbn=isbn)) for s in BOOKSHOPS]
     return _searches(BOOKSHOPS, _book_query(title, by))

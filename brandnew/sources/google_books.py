@@ -7,6 +7,7 @@ books with an exact publication date inside the window.
 import os
 import re
 import sys
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlencode
@@ -51,8 +52,29 @@ UK_PUBLISHERS = re.compile(
     r"simon & schuster uk|harpercollins uk|harper ?collins publishers ltd", re.I)
 
 
-def is_uk_edition(publisher: str | None) -> bool:
-    return bool(publisher and UK_PUBLISHERS.search(publisher))
+# Google names some editions after a UK parent company that aren't UK editions, so the ISBN has to
+# agree. UK ISBNs start 978-0 or 978-1 (979-8 is the US, 978-93 India), and within those these
+# are US houses Google lists as "Hachette UK": Little, Brown and Company (0-316), Grand Central
+# (0-446, 1-4555, 1-5387).
+UK_ISBN_GROUPS = ("9780", "9781")
+US_REGISTRANTS = ("9780316", "9780446", "9781455", "9781538")
+
+
+def is_uk_edition(publisher: str | None, isbn: str | None) -> bool:
+    return bool(publisher and UK_PUBLISHERS.search(publisher) and isbn
+                and isbn.startswith(UK_ISBN_GROUPS) and not isbn.startswith(US_REGISTRANTS))
+
+
+def relink(releases: list[Release]) -> list[Release]:
+    """Re-decide each book's UK-edition flag and Amazon link from its ISBN and publisher, so data
+    saved by an older version (or before the flag existed) links the same way as fresh data."""
+    out = []
+    for r in releases:
+        if r.kind == "books":
+            uk = is_uk_edition(r.publisher, r.id)
+            r = replace(r, uk_edition=uk, amazon_url=amazon.book_url(r.id, r.title, r.by, direct=uk))
+        out.append(r)
+    return out
 
 
 def clean_title(title: str, subtitle: str | None = None) -> str:
@@ -122,11 +144,12 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
     by = ", ".join(v["authors"][:2])
     img = (v.get("imageLinks") or {}).get("thumbnail")
     cover = img.replace("http://", "https://").replace("&edge=curl", "") if img else None
+    uk = is_uk_edition(v.get("publisher"), isbn)
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
-                   amazon_url=amazon.book_url(isbn, title, by, direct=is_uk_edition(v.get("publisher"))),
+                   amazon_url=amazon.book_url(isbn, title, by, direct=uk),
                    genres=[genre], cover=cover,
                    publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"),
-                   uk_edition=is_uk_edition(v.get("publisher")))
+                   uk_edition=uk)
 
 
 def _dedupe_key(r: Release) -> tuple[str, str]:

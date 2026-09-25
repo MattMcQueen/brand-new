@@ -41,3 +41,10 @@ def test_listen_links_search_artist_and_title():
     assert list(links) == ["Spotify", "Apple Music", "YouTube Music", "Amazon Music", "Deezer", "Bandcamp"]
     assert links["Spotify"] == "https://open.spotify.com/search/Neil%20Young%20%26%20The%20Chrome%20Hearts%20Second%20Song/albums"
     assert links["Bandcamp"] == "https://bandcamp.com/search?q=Neil+Young+%26+The+Chrome+Hearts+Second+Song&item_type=a"
+
+
+def test_only_some_isbn_links_are_the_books_own_page():
+    pages = [s.name for s in shops.BOOKSHOPS if s.isbn_page]
+    assert pages == ["Bookshop.org", "Blackwell's"]
+    for s in shops.BOOKSHOPS:
+        assert ("search" in s.by_isbn.lower()) is not s.isbn_page

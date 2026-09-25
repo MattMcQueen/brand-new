@@ -24,6 +24,7 @@ def cmd_fetch(args) -> int:
     if args.previous:
         try:
             _, previous = store.load(args.previous)
+            previous = google_books.relink(previous)
             print(f"Previous run: {len(previous)} releases from {args.previous}", file=sys.stderr)
         except Exception as e:  # noqa: BLE001 - first run, or the site isn't live yet
             print(f"No previous data ({e}); carrying on without a fallback.", file=sys.stderr)
@@ -52,6 +53,7 @@ def cmd_build(args) -> int:
             print(f"No data file at {args.data}. Use --sample to build with made-up data.", file=sys.stderr)
             return 1
         generated, releases = store.load(args.data)
+        releases = google_books.relink(releases)  # so older data links the way fresh data would
         for kind in ("books", "music"):
             n = sum(r.kind == kind for r in releases)
             if n < args.min_releases:

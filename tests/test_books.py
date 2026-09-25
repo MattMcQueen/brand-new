@@ -145,3 +145,29 @@ def test_failed_genre_is_skipped(key):
 def test_uk_edition_flag():
     assert gb.to_release(item(publisher="Pan Macmillan"), "horror", TODAY).uk_edition
     assert not gb.to_release(item(publisher="Berkley"), "horror", TODAY).uk_edition
+
+
+@pytest.mark.parametrize("isbn,publisher,uk", [
+    ("9781529445282", "Hachette UK", True),
+    ("9780316535984", "Hachette UK", False),    # Little, Brown and Company (US): Die Famous
+    ("9789357317511", "Hachette UK", False),    # Hachette India
+    ("9798260200384", "Raven Books", False),    # 979-8 is a US range
+    ("9781529445282", "Berkley", False),
+    (None, "Hachette UK", False),
+])
+def test_uk_edition_needs_a_uk_publisher_and_isbn(isbn, publisher, uk):
+    assert gb.is_uk_edition(publisher, isbn) is uk
+
+
+def test_relink_fixes_data_saved_before_the_rules():
+    from brandnew import shops
+    from brandnew.models import Release
+    old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
+           "date": "2026-10-01", "source": "google-books", "publisher": "Hachette UK",
+           "amazon_url": "https://www.amazon.co.uk/s?k=9781529445282&i=stripbooks"}  # no uk_edition field
+    us = old | {"id": "9780316535984", "title": "Die Famous", "amazon_url": "https://www.amazon.co.uk/dp/0316535982"}
+    uk_book, us_book = gb.relink([Release.from_dict(old), Release.from_dict(us)])
+    assert uk_book.uk_edition and uk_book.amazon_url == "https://www.amazon.co.uk/dp/1529445280"
+    links = dict(shops.book_links(uk_book.id, uk_book.title, uk_book.by, uk_book.uk_edition))
+    assert links["Bookshop.org"] == "https://uk.bookshop.org/book/9781529445282"
+    assert not us_book.uk_edition and us_book.amazon_url == "https://www.amazon.co.uk/s?k=Die+Famous+Elin+Hilderbrand&i=stripbooks"
