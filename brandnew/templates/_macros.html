@@ -70,7 +70,7 @@
         <button class="icon-btn" type="button" popovertarget="{{ pid }}" popovertargetaction="hide"
                 title="Close" aria-label="Close">{{ icon("close") }}</button>
       </div>
-      {% for group in other_shops(r) %}
+      {% for group in other_shops(r, today) %}
       <p class="shops-group">{{ group.heading }}</p>
       <ul class="shops-list">
         {% for name, url, formats in group.links %}

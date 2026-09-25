@@ -33,7 +33,14 @@ def test_groups_for_books_and_albums():
     assert [g.heading for g in books] == ["Bookshops", "Ebooks & audiobooks"]
     assert books[1].note and all(formats for _, _, formats in books[1].links)
     music = shops.groups_for("music", "mbid", "T", "A", uk_edition=False)
-    assert [g.heading for g in music] == ["Listen", "Record shops"] and music[0].note
+    assert [g.heading for g in music] == ["Listen", "Record shops"] and not any(g.note for g in music)
+
+
+def test_upcoming_album_puts_record_shops_first_with_a_dated_note():
+    music = shops.groups_for("music", "mbid", "T", "A", uk_edition=False, out_on="Fri 2 Oct 2026")
+    assert [g.heading for g in music] == ["Record shops", "Listen"]
+    assert music[1].note == "Out on Fri 2 Oct 2026. Until then you may only find singles, or a pre-save."
+    assert not music[0].note
 
 
 def test_listen_links_search_artist_and_title():
