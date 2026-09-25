@@ -18,9 +18,6 @@
   <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button with links to {% for s in shops %}{{ s.name }}{{ ", " if not loop.last and loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</p>
   <p>These are <strong>not affiliate links</strong>: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
 
-  <h2>Picks of the week</h2>
-  <p>The picks at the top of the home page are chosen by me, because I've enjoyed them or I'm looking forward to them. They're never paid for.</p>
-
   <h2>Other ways to help</h2>
   <p>If you'd like to support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>. Thank you!</p>
 

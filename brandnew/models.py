@@ -1,5 +1,5 @@
 """The one record type every data source produces."""
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from datetime import date
 
 
@@ -10,7 +10,7 @@ class Release:
     title: str
     by: str                   # author(s) or artist
     date: date
-    source: str               # e.g. "google-books", "listenbrainz", "pick"
+    source: str               # e.g. "google-books", "listenbrainz"
     amazon_url: str           # built without contacting Amazon; the tag is added when rendering
     genres: list[str] = field(default_factory=list)   # our genre slugs
     tags: list[str] = field(default_factory=list)     # descriptive tags shown on the card
@@ -19,7 +19,6 @@ class Release:
     publisher: str = ""
     info_url: str | None = None  # the source's own page for this release (Google Books requires one)
     popularity: int = 0       # ListenBrainz listener count (music only)
-    note: str = ""            # my comment, for picks
     uk_edition: bool = False  # books: the ISBN is a UK edition, so shops can link straight to it
 
     def to_dict(self) -> dict:
@@ -29,6 +28,7 @@ class Release:
 
     @classmethod
     def from_dict(cls, d: dict) -> "Release":
-        d = dict(d)
+        known = {f.name for f in fields(cls)}
+        d = {k: v for k, v in d.items() if k in known}  # data saved by older versions may have extra fields
         d["date"] = date.fromisoformat(d["date"])
         return cls(**d)

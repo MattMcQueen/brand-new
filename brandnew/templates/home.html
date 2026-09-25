@@ -19,15 +19,6 @@
   <h1>What's new, and what's next</h1>
   <p>Books and albums from the last week, and the ones due over the next three months. Choose a genre.</p>
 </div>
-{% if picks %}
-<section class="picks" aria-labelledby="picks-h">
-  <h2 id="picks-h">{{ icon("star") }} Picks of the week</h2>
-  <p class="picks-intro">Chosen by me, not paid for.
-    {% if picks|selectattr("source", "equalto", "google-books")|list %}<span class="powered">Book data <img src="https://books.google.com/googlebooks/images/poweredby.png" alt="powered by Google" height="18" loading="lazy" referrerpolicy="no-referrer"></span>{% endif %}
-  </p>
-  <ul class="grid" role="list">{% for r in picks %}{{ card(r) }}{% endfor %}</ul>
-</section>
-{% endif %}
 {{ tiles("books", book_pages) }}
 {{ tiles("music", music_pages) }}
 {% endblock %}

@@ -4,17 +4,15 @@ import functools
 import http.server
 import os
 import sys
-from dataclasses import replace
 from pathlib import Path
 
-from . import config, picks, pipeline, render, sample, store
+from . import config, pipeline, render, sample, store
 from .sources import google_books, listenbrainz
 from .ukdates import now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
 DEFAULT_OUT = Path("dist")
 GENRE_CACHE = Path(".cache/artist-genres.json")
-DEFAULT_PICKS = Path("picks.yaml")
 
 
 def cmd_fetch(args) -> int:
@@ -58,12 +56,8 @@ def cmd_build(args) -> int:
                 print(f"Only {n} {kind} releases (need {args.min_releases}); not building.", file=sys.stderr)
                 return 1
     tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
-    chosen = picks.resolve(picks.load(args.picks), releases, now.date(), lookup=not args.sample)
-    # A pick with a genre that isn't in the day's data also goes on that genre page
-    have = {r.id for r in releases}
-    releases = releases + [replace(p, note="") for p in chosen if p.genres and p.id not in have]
-    pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag, picks=chosen)
-    print(f"Built {len(pages)} pages from {len(releases)} releases and {len(chosen)} picks into {args.out}/",
+    pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
+    print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/",
           file=sys.stderr)
     return 0
 
@@ -88,7 +82,6 @@ def main(argv=None) -> int:
     b.add_argument("--data", type=Path, default=DEFAULT_DATA)
     b.add_argument("--out", type=Path, default=DEFAULT_OUT)
     b.add_argument("--sample", action="store_true", help="use made-up releases")
-    b.add_argument("--picks", type=Path, default=DEFAULT_PICKS)
     b.add_argument("--min-releases", type=int, default=0,
                    help="refuse to build if books or music has fewer releases than this")
     b.set_defaults(func=cmd_build)

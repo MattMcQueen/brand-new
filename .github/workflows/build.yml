@@ -4,7 +4,7 @@ name: Build site
 #   - every morning, with fresh data. GitHub's cron is in UTC: 08:17 UTC is 09:17 BST / 08:17 GMT.
 #     That's after Google Books' daily quota resets at midnight Pacific (08:00 UK time), so each
 #     run starts with a fresh quota;
-#   - on every push to main (e.g. a picks.yaml edit), reusing the morning's data;
+#   - on every push to main, reusing the morning's data;
 #   - by hand from the Actions tab ("Run workflow"), with or without fresh data.
 # Deploying is off until the repository variable DEPLOY_ENABLED is set to "true".
 
@@ -82,8 +82,6 @@ jobs:
           key: brandnew-data-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Build site
-        env:
-          GOOGLE_BOOKS_KEY: ${{ secrets.GOOGLE_BOOKS_KEY }}  # for looking up picks
         run: python -m brandnew build --min-releases 50
 
       - name: Summary

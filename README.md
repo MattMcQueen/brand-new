@@ -16,11 +16,6 @@ repository variable `DEPLOY_ENABLED` is `true` and the `AZURE_STATIC_WEB_APPS_AP
 
 Secrets: `GOOGLE_BOOKS_KEY` (GitHub Actions secret).
 
-## Picks of the week
-
-Edit [`picks.yaml`](picks.yaml) (instructions are at the top of the file) and commit to `main`.
-Picks show at the top of the home page with your note, and get a badge in their genre list.
-
 ## Local development
 
 ```bash

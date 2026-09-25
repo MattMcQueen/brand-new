@@ -38,3 +38,10 @@ def test_empty_genre_is_carried_over():
 def test_normal_day_uses_fresh(previous):
     fresh = [rel(f"n{i}") for i in range(10)] + [rel("nj", "jazz")]
     assert pipeline.with_fallback("music", lambda: fresh, previous, TODAY) == fresh
+
+
+def test_old_data_with_removed_fields_still_loads():
+    from brandnew.models import Release
+    r = Release.from_dict({"kind": "books", "id": "1", "title": "T", "by": "B", "date": "2026-09-25",
+                           "source": "google-books", "amazon_url": "u", "note": ""})
+    assert r.title == "T" and not r.uk_edition
