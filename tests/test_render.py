@@ -75,3 +75,14 @@ def test_default_tag_is_used(tmp_path, monkeypatch):
     assert main(["build", "--sample", "--out", str(tmp_path)]) == 0
     html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert "tag=matsbasblo-21" in html
+
+
+def test_build_refuses_thin_data(tmp_path):
+    from brandnew import store
+    from brandnew.__main__ import main
+    data = tmp_path / "r.json"
+    store.save(data, sample.releases(TODAY), datetime(2026, 9, 25, 5, 0, tzinfo=UK))
+    out = tmp_path / "dist"
+    assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "1000"]) == 1
+    assert not out.exists()
+    assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "10"]) == 0
