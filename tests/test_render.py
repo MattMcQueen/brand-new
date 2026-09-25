@@ -1,3 +1,4 @@
+import json
 import re
 from datetime import date, datetime, timedelta
 
@@ -226,3 +227,45 @@ def test_home_screen_icons_and_manifest(tmp_path):
         png = (tmp_path / "static" / icon["src"]).read_bytes()
         size = int(icon["sizes"].split("x")[0])
         assert png[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(png[16:20], "big") == size
+
+
+def _ld(html: str) -> list:
+    return [json.loads(m) for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)]
+
+
+def test_sitemap_lastmod(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    sitemap = (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
+    assert f"<loc>{config.SITE_URL}/books/horror/</loc><lastmod>2026-09-25</lastmod>" in sitemap
+    assert f"<loc>{config.SITE_URL}/about/</loc></url>" in sitemap
+
+
+def test_structured_data(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = _ld((tmp_path / "index.html").read_text(encoding="utf-8"))
+    assert home == [{"@context": "https://schema.org", "@type": "WebSite", "name": "Brand New",
+                     "url": f"{config.SITE_URL}/"}]
+    assert _ld((tmp_path / "about" / "index.html").read_text(encoding="utf-8")) == []
+
+    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    collection, crumbs = _ld(genre)[0]
+    items = collection["mainEntity"]["itemListElement"]
+    assert len(items) == collection["mainEntity"]["numberOfItems"] == genre.count('class="buy"')
+    assert items[0]["position"] == 1 and items[0]["item"]["@type"] == "Book"
+    assert items[0]["item"]["author"] == [{"@type": "Person", "name": "A. N. Author"}]
+    assert [c["name"] for c in crumbs["itemListElement"]] == ["Brand New", "Books", "Horror"]
+    assert crumbs["itemListElement"][2]["item"] == f"{config.SITE_URL}/books/horror/"
+
+    rock = _ld((tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8"))[0]
+    album = rock[0]["mainEntity"]["itemListElement"][0]["item"]
+    assert album["@type"] == "MusicAlbum" and album["byArtist"]["@type"] == "MusicGroup"
+
+
+def test_structured_data_cant_break_out_of_script():
+    r = Release(kind="books", id="9780306406157", title="</script><script>alert(1)</script>", by="X, Y & Z",
+                date=TODAY, source="test", amazon_url="https://www.amazon.co.uk/dp/0306406152", genres=["horror"])
+    page = render.genre_page(BOOK_GENRES[3], [r], TODAY)
+    text = str(render.json_ld(render.genre_ld(page)))
+    assert "<" not in text and ">" not in text and "&" not in text
+    item = json.loads(text)[0]["mainEntity"]["itemListElement"][0]["item"]
+    assert item["name"] == r.title and [a["name"] for a in item["author"]] == ["X", "Y & Z"]

@@ -21,6 +21,9 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The Brand New logo, a sticker with a book and a record: new and upcoming books and music, by genre.">
 <meta name="twitter:card" content="summary_large_image">
+{% if ld %}
+<script type="application/ld+json">{{ ld|json_ld }}</script>
+{% endif %}
 <meta name="color-scheme" content="light dark">
 <script src="{{ asset('early.js') }}"></script>
 <link rel="stylesheet" href="{{ asset('style.css') }}">
