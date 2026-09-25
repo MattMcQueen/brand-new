@@ -5,8 +5,23 @@ try {
   var t = localStorage.getItem("theme");
   if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
 } catch (e) { /* storage blocked: follow the system setting */ }
-// 2. A cover that fails to load is removed, leaving the card's book or record icon behind it.
+// 2. A cover that fails to load (the image hosts sometimes have errors) is removed, rather than
+//    leaving a broken-image box: in a genre tile's fan a hidden spare moves up in its place
+//    (style.css shows the first three). A card has no spare, so it tries twice more first: the
+//    Cover Art Archive sends each request to one of several copies, and some can be broken while
+//    others work. The card shows its made-up cover meanwhile, and keeps it if every try fails.
+//    Runs here, not in app.js, so it's listening before any cover starts loading.
 document.addEventListener("error", function (e) {
-  var img = e.target;
-  if (img && img.tagName === "IMG" && img.parentNode && img.parentNode.classList.contains("cover")) img.remove();
+  var img = e.target, tries;
+  if (!img || img.tagName !== "IMG" || !img.closest || !img.closest(".tile-fan, .cover")) return;
+  tries = Number(img.dataset.tries || 0);
+  if (!img.closest(".cover") || tries >= 2) { img.remove(); return; }
+  img.dataset.tries = tries + 1;
+  img.classList.add("is-retrying");
+  var src = (img.currentSrc || img.src).replace(/[?&]retry=\d+$/, "");
+  img.removeAttribute("srcset");  // retry the size the browser chose, and only that
+  img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "retry=" + (tries + 1);  // not a cached failure
+}, true);
+document.addEventListener("load", function (e) {
+  if (e.target.classList && e.target.classList.contains("is-retrying")) e.target.classList.remove("is-retrying");
 }, true);

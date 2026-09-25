@@ -103,17 +103,6 @@
     row.scrollLeft = current.getBoundingClientRect().left - row.getBoundingClientRect().left - 16;
 })();
 
-// A cover that fails to load (the image hosts sometimes have errors) is removed, rather than
-// leaving a broken-image box: in a genre tile's fan a hidden spare moves up in its place (style.css
-// shows the first three), and a card shows its made-up cover.
-(function () {
-  function drop(img) { if (img.closest && img.closest(".tile-fan, .cover")) img.remove(); }
-  document.addEventListener("error", function (e) { drop(e.target); }, true);
-  document.querySelectorAll(".tile-fan img, .cover img").forEach(function (img) {
-    if (img.complete && !img.naturalWidth) drop(img);  // failed before this script ran
-  });
-})();
-
 // "Surprise me": picks a random release from the last week (with a cover) and shows it, after a
 // quick shuffle through other covers. The data file is only fetched on the first click.
 (function () {
