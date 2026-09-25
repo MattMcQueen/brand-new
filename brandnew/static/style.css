@@ -170,14 +170,14 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .hue-5 { --mc1: #4d7c0f; --mc2: #bef264; }
 .hue-6 { --mc1: #a16207; --mc2: #fde68a; }
 .hue-7 { --mc1: #334155; --mc2: #94a3b8; }
-/* The block of pages behind a book's cover: only seen when the book turns (hover). The far edge
-   is a little shorter, for perspective. */
+/* The edges of a book's pages: only seen when the book turns (hover). It's the cover's size, and
+   the hover transform folds it back along the cover's right edge as the side of the book. The
+   stripes are wide because that fold squashes it to the book's thickness; they darken further back. */
 .cover-books::before {
-  content: ""; position: absolute; z-index: 0; top: 4%; bottom: 4%; right: 2%; width: 24%; opacity: 0;
-  clip-path: polygon(0 0, 100% 5%, 100% 95%, 0 100%);
-  border-radius: 0 3px 3px 0; box-shadow: inset -2px 0 4px rgb(0 0 0 / .25);
-  background: repeating-linear-gradient(to right, #f6f1e7 0 1.5px, #cfc6b4 1.5px 2.5px);
-  transition: opacity .2s ease;
+  content: ""; position: absolute; z-index: 0; inset: 1.5% 0; opacity: 0;
+  background: linear-gradient(to right, transparent 40%, rgb(0 0 0 / .3)),
+              repeating-linear-gradient(to right, #f6f1e7 0 6px, #cfc6b4 6px 9px);
+  transition: transform .35s ease, opacity .35s ease;
 }
 .made-cover {
   position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden;
@@ -334,11 +334,17 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 @media (hover: hover) {
   .card:hover .cover-music img, .card:hover .cover-music .made-cover { transform: translateX(-16%) scale(.8); }
   .card:hover .vinyl { transform: translateX(26%) rotate(60deg); }
-  /* Books turn on the spine, showing the edges of their pages */
-  .cover-books { perspective: 600px; }
-  .cover-books img, .cover-books .made-cover { transform-origin: left center; }
-  .card:hover .cover-books img, .card:hover .cover-books .made-cover { transform: rotateY(28deg); box-shadow: 4px 0 10px rgb(0 0 0 / .3); }
-  .card:hover .cover-books::before { opacity: 1; }
+  /* Books turn to show the edges of their pages. The cover and the pages share one turn (same
+     box size, origin and perspective), so they stay joined; resting and hover use the same list
+     of functions so the browser can animate between them. */
+  .cover-books img, .cover-books .made-cover { transform: translateX(0) scale(1) perspective(600px) rotateY(0); }
+  .cover-books::before { transform: translateX(0) scale(1) perspective(600px) rotateY(0) translateX(50%) rotateY(90deg) scaleX(.2) translateX(50%); }
+  .card:hover .cover-books img, .card:hover .cover-books .made-cover {
+    transform: translateX(-6%) scale(.84) perspective(600px) rotateY(-30deg); box-shadow: -4px 4px 12px rgb(0 0 0 / .35);
+  }
+  .card:hover .cover-books::before {
+    opacity: 1; transform: translateX(-6%) scale(.84) perspective(600px) rotateY(-30deg) translateX(50%) rotateY(90deg) scaleX(.2) translateX(50%);
+  }
 }
 .surprise-btn {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 16px; border-radius: 999px;
