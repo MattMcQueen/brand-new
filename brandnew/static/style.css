@@ -145,7 +145,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 /* The cover fan: up to three covers, overlapping and tilted, spreading a little on hover */
 .tile-fan { display: flex; align-items: flex-end; height: 122px; margin: 0 0 8px 4px; }
 .tile-fan img {
-  width: 76px; height: 114px; object-fit: cover; border-radius: 4px; background: var(--accent-soft);
+  width: 76px; height: 114px; object-fit: cover; border-radius: 4px; background: var(--panel);
   border: 2px solid var(--surface); box-shadow: 0 2px 8px rgb(0 0 0 / .25); transition: transform .2s ease;
 }
 .tile-fan-music img { width: 92px; height: 92px; }  /* three still fit the narrowest tile (198px inside) */
@@ -197,7 +197,8 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .card-title { padding-top: 12px !important; }
 .card-source { padding-bottom: 12px !important; }
 .card-buy { margin-top: auto; }  /* keeps the button at the bottom without subgrid too */
-.cover { position: relative; aspect-ratio: 2 / 3; background: var(--accent-soft); display: grid; place-items: center; }
+/* The panel colour shows behind a cover while it loads, and around it as it turns or slides aside on hover */
+.cover { position: relative; aspect-ratio: 2 / 3; background: var(--panel); display: grid; place-items: center; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* Made-up covers, for releases with no cover (or one that won't load): a classic paperback for
@@ -430,7 +431,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .surprise::backdrop { background: rgb(0 0 0 / .45); }
 .surprise-close { position: absolute; top: 8px; right: 8px; }
 .surprise-cover { width: 150px; margin: 4px auto 12px; }
-.surprise-cover img { display: block; width: 100%; border-radius: 6px; box-shadow: 0 4px 14px rgb(0 0 0 / .35); background: var(--accent-soft); }
+.surprise-cover img { display: block; width: 100%; border-radius: 6px; box-shadow: 0 4px 14px rgb(0 0 0 / .35); background: var(--panel); }
 .surprise.is-shuffling .surprise-cover img { animation: flick .1s ease-in-out infinite alternate; }
 @keyframes flick { from { transform: rotate(-4deg) scale(.97); } to { transform: rotate(4deg) scale(1.02); } }
 .surprise.is-shuffling .surprise-title, .surprise.is-shuffling .surprise-by,
