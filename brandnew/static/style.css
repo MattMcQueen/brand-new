@@ -63,9 +63,9 @@ ul[role="list"] { list-style: none; margin: 0; padding: 0; }
 
 /* Header */
 .site-header { border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 5; }
-.bar { display: flex; align-items: center; gap: 16px; min-height: 56px; }
-.logo { display: flex; align-items: center; gap: 8px; font-size: 1.3rem; font-weight: 700; color: var(--fg); text-decoration: none; }
-.logo-mark { flex: none; width: 30px; height: 30px; }
+.bar { display: flex; align-items: center; gap: 16px; min-height: 64px; }
+.logo { display: flex; align-items: center; gap: 10px; font-size: 1.7rem; font-weight: 700; color: var(--fg); text-decoration: none; }
+.logo-mark { flex: none; width: 40px; height: 40px; }
 .nav { display: flex; gap: 4px; margin-left: auto; }
 .nav a { color: var(--fg); text-decoration: none; padding: 6px 10px; border-radius: 8px; }
 .nav a:hover, .nav a[aria-current] { background: var(--accent-soft); }
@@ -75,12 +75,17 @@ ul[role="list"] { list-style: none; margin: 0; padding: 0; }
 }
 .icon-btn:hover { background: var(--accent-soft); }
 .logo { white-space: nowrap; }
+@media (max-width: 600px) {
+  .logo { font-size: 1.4rem; }
+  .logo-mark { width: 34px; height: 34px; }
+}
 @media (max-width: 480px) {
-  .bar { gap: 6px; }
-  .logo { font-size: 1.1rem; gap: 6px; }
-  .logo-mark { width: 26px; height: 26px; }
+  /* Sized so the logo, nav and theme button fit a 360px-wide phone */
+  .bar { gap: 4px; min-height: 56px; }
+  .logo { font-size: 1.15rem; gap: 5px; }
+  .logo-mark { width: 28px; height: 28px; }
   .nav { gap: 0; }
-  .nav a { padding: 6px 7px; font-size: .95rem; }
+  .nav a { padding: 6px 5px; font-size: .9rem; }
   .icon-btn { width: 36px; height: 36px; }
 }
 .when-dark { display: none; }
@@ -93,7 +98,7 @@ ul[role="list"] { list-style: none; margin: 0; padding: 0; }
 
 main { padding-top: 24px; padding-bottom: 48px; min-height: 60vh; }
 .intro h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin: 8px 0; }
-.intro p { color: var(--muted); max-width: 60ch; margin: 0 0 8px; }
+.intro p { color: var(--muted); margin: 0 0 8px; }
 h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); margin: 8px 0 16px; }
 h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .kicker { display: block; font: 600 .8rem/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
