@@ -43,7 +43,8 @@ def config() -> dict:
         ],
         "responseOverrides": {"404": {"rewrite": "/404.html"}},
         "globalHeaders": {**SECURITY_HEADERS, "Cache-Control": PAGE_CACHE},
-        "mimeTypes": {".woff2": "font/woff2", ".json": "application/json"},
+        "mimeTypes": {".woff2": "font/woff2", ".json": "application/json",
+                      ".webmanifest": "application/manifest+json"},
     }
 
 
