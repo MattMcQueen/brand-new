@@ -10,6 +10,11 @@ Status: in development. Nothing is deployed yet.
 A Python script fetches releases, renders plain HTML pages into `dist/`, and (later) a scheduled
 GitHub Action rebuilds it every morning and deploys it to Azure Static Web Apps.
 
+## Picks of the week
+
+Edit [`picks.yaml`](picks.yaml) (instructions are at the top of the file) and commit to `main`.
+Picks show at the top of the home page with your note, and get a badge in their genre list.
+
 ## Local development
 
 ```bash

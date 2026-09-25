@@ -61,6 +61,14 @@ def test_cards_have_the_same_parts_so_rows_line_up(tmp_path):
                          for p in parts)
 
 
+def test_about_page_explains_affiliate_links(tmp_path):
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert 'id="affiliate-links"' in about and "affiliate link" in about
+    assert "You don't pay a penny more" in about and f"tag={config.AMAZON_TAG}" in about
+    assert 'href="/about/#affiliate-links"' in (tmp_path / "index.html").read_text(encoding="utf-8")
+
+
 def test_default_tag_is_used(tmp_path, monkeypatch):
     from brandnew.__main__ import main
     monkeypatch.delenv("AMAZON_TAG", raising=False)

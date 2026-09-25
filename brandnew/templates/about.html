@@ -1,14 +1,24 @@
 {% extends "base.html" %}
 {% block title %}About | {{ config.SITE_NAME }}{% endblock %}
+{% block description %}What Brand New is, how its affiliate links work, and where its data comes from.{% endblock %}
 {% block main %}
 <article class="prose">
   <h1>About Brand New</h1>
-  <p>Brand New lists the books and albums that came out in the last week and those due over the next three months, by genre. The lists are rebuilt automatically every morning.</p>
+  <p>Brand New lists the books and albums that came out in the last week and those due over the next three months, by genre. The lists are rebuilt automatically every morning, UK time.</p>
   <p>It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
 
-  <h2>Affiliate links</h2>
-  <p>{{ config.AMAZON_DISCLOSURE }} The "on Amazon UK" links are affiliate links: if you buy something after following one, I may earn a small commission at no extra cost to you. Book links go straight to the book where possible; album links open an Amazon search.</p>
-  <p>If you'd rather support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>.</p>
+  <h2 id="affiliate-links">How the Amazon links work</h2>
+  <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
+  <p>The "on Amazon UK" buttons are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
+  <p>If you follow one of those links and then buy something, Amazon pays me a small commission, a percentage of the price, as thanks for sending you. It generally counts anything you buy within 24 hours of clicking, not only the item you clicked on.</p>
+  <p><strong>You don't pay a penny more.</strong> The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p>
+  <p>You never have to use them. If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p>
+
+  <h2>Picks of the week</h2>
+  <p>The picks at the top of the home page are chosen by me, because I've enjoyed them or I'm looking forward to them. They're never paid for.</p>
+
+  <h2>Other ways to help</h2>
+  <p>If you'd like to support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>. Thank you!</p>
 
   <h2>Where the data comes from</h2>
   <ul>
@@ -16,7 +26,10 @@
     <li>Album covers: the <a href="https://coverartarchive.org">Cover Art Archive</a>.</li>
     <li>Books and book covers: the <a href="https://books.google.co.uk">Google Books</a> API.</li>
   </ul>
-  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order.</p>
+  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order. Book links go straight to the book when it's a UK edition; otherwise, and for albums, they open an Amazon UK search.</p>
+
+  <h2>Privacy</h2>
+  <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon or Google Books, their own privacy policies apply.</p>
 
   <p class="updated">Last updated {{ updated }}.</p>
 </article>

@@ -67,14 +67,15 @@ def _env(amazon_tag: str | None) -> Environment:
 
 
 def build(releases: list[Release], generated: datetime, out: Path, today: date,
-          amazon_tag: str | None = None) -> list[str]:
+          amazon_tag: str | None = None, picks: list[Release] = ()) -> list[str]:
     """Write the whole site to `out`. Returns the page paths written."""
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
     env = _env(amazon_tag)
     pages = {g.slug + g.kind: genre_page(g, releases, today) for g in config.ALL_GENRES}
-    common = dict(updated=format_updated(generated), pages=pages,
+    common = dict(updated=format_updated(generated), pages=pages, picks=list(picks),
+                  picked={p.id for p in picks},
                   book_pages=[pages[g.slug + g.kind] for g in config.BOOK_GENRES],
                   music_pages=[pages[g.slug + g.kind] for g in config.MUSIC_GENRES])
     written = []

@@ -1,0 +1,25 @@
+# Picks of the week: shown at the top of the home page, with a "Pick of the week" badge in their genre list.
+# Edit this file on github.com (or the GitHub app) and commit to main; the site rebuilds in a few minutes.
+#
+# Each pick needs:
+#   isbn:  the book's 13-digit ISBN           or   mbid: the album's MusicBrainz release-group ID
+#          (from the "More on Google Books"             (the long ID in its musicbrainz.org/release-group/... address)
+#           page, or the book's Amazon page)
+#   until: the last day to show it, as YYYY-MM-DD (UK date)
+# Optional:
+#   note:  a line or two in your own words
+#   from:  the first day to show it (default: straight away)
+#   genre: also list it on this genre page, e.g. horror, crime-thrillers, folk, hip-hop
+#   title, by, date, cover: fill in or correct details if the automatic lookup gets them wrong
+#
+# Example (remove the # at the start of each line to use it):
+#
+# picks:
+#   - isbn: "9780000000000"
+#     note: "The best ghost story I've read in years."
+#     until: 2026-10-02
+#   - mbid: "00000000-0000-0000-0000-000000000000"
+#     note: "On repeat all week."
+#     until: 2026-10-02
+
+picks: []
