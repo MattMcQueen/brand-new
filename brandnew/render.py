@@ -64,8 +64,8 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
     env.globals.update(config=config, genre_url=genre_url, kind_names=config.KIND_NAMES,
-                       book_shops=lambda r: shops.book_links(r.id, r.title, r.by, r.uk_edition),
-                       shops=shops.BOOKSHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
+                       other_shops=lambda r: shops.links_for(r.kind, r.id, r.title, r.by, r.uk_edition),
+                       bookshops=shops.BOOKSHOPS, record_shops=shops.RECORD_SHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env
 
 

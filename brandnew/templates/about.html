@@ -14,8 +14,12 @@
   <p><strong>You don't pay a penny more.</strong> The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p>
   <p>You never have to use them. If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p>
 
-  <h2 id="other-shops">Other bookshops</h2>
-  <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button with links to {% for s in shops %}{{ s.name }}{{ ", " if not loop.last and loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</p>
+  <h2 id="other-shops">Other shops</h2>
+  <p>Not everyone wants to use Amazon, so every book and album also has an "Other shops" button.</p>
+  <ul>
+    <li>Books: {% for s in bookshops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</li>
+    <li>Albums: {% for s in record_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
+  </ul>
   <p>These are <strong>not affiliate links</strong>: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
 
   <h2>Other ways to help</h2>
@@ -27,7 +31,7 @@
     <li>Album covers: the <a href="https://coverartarchive.org">Cover Art Archive</a>.</li>
     <li>Books and book covers: the <a href="https://books.google.co.uk">Google Books</a> API.</li>
   </ul>
-  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order. Book links go straight to the book when it's a UK edition; otherwise they open a search on that shop's site, as do the album links to Amazon UK.</p>
+  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order. Book links go straight to the book when it's a UK edition; otherwise they open a search on that shop's site. Album links always open a search.</p>
 
   <h2>Privacy</h2>
   <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies.</p>

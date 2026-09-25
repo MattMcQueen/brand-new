@@ -55,7 +55,7 @@ def test_build_site(tmp_path):
 def test_cards_have_the_same_parts_so_rows_line_up(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     html = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
-    cards = re.findall(r'<li class="card">(.*?)</li>', html, re.S)
+    cards = re.findall(r'<li class="card">(.*?)\n</li>', html, re.S)  # the card's own </li> is on its own line
     parts = [re.findall(r'^  <\w+ class="([\w-]+)', c, re.M) for c in cards]
     assert cards and all(p == ["cover", "card-title", "card-by", "card-date", "card-extra", "card-buy", "card-source"]
                          for p in parts)
@@ -88,7 +88,7 @@ def test_build_refuses_thin_data(tmp_path):
     assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "10"]) == 0
 
 
-def test_books_have_other_shops_but_albums_dont(tmp_path):
+def test_books_and_albums_have_other_shops(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     ids = re.findall(r'<div class="shops" id="([^"]+)" popover>', books)
@@ -96,6 +96,10 @@ def test_books_have_other_shops_but_albums_dont(tmp_path):
     assert all(f'popovertarget="{i}"' in books for i in ids)
     shop_links = re.findall(r'<li><a href="([^"]+)" rel="([^"]+)"', books)
     assert shop_links and all(rel == config.OTHER_SHOP_REL and "tag=" not in href for href, rel in shop_links)
-    assert "more-shops" not in (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert "at other UK bookshops" in books
+    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert music.count('class="more-shops"') == music.count('class="card"') > 0
+    assert "at other UK record shops" in music and "hmv.com/search?searchtext=" in music
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="other-shops"' in about and "Waterstones, Bookshop.org, Foyles, Blackwell&#39;s and Hive" in about
+    assert "HMV, Rough Trade, Norman Records, Banquet Records and Resident" in about
