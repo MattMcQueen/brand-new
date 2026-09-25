@@ -85,3 +85,13 @@
   if (panel) panel.addEventListener("toggle", queue);
   queue();
 })();
+
+// "Running late" notice: the pages are rebuilt every morning, so data more than a couple of days
+// old means the daily update has been failing. The notice is in every page, hidden; show it then.
+(function () {
+  var note = document.querySelector(".stale[data-generated]");
+  if (!note) return;
+  var generated = Date.parse(note.dataset.generated);
+  var limit = Number(note.dataset.staleHours) * 3600 * 1000;
+  if (!isNaN(generated) && Date.now() - generated > limit) note.hidden = false;
+})();

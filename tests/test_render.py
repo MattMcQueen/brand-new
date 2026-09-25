@@ -178,3 +178,13 @@ def test_books_and_music_have_their_own_pages(tmp_path):
     home = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'aria-current' not in home.split("</nav>")[0] and '<a class="kind-link" href="/music/">' in home
     assert f"{config.SITE_URL}/books/</loc>" in (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
+
+
+def test_running_late_notice_is_in_every_page_but_hidden(tmp_path):
+    generated = datetime(2026, 9, 25, 9, 49, tzinfo=UK)
+    render.build(sample.releases(TODAY), generated, tmp_path, TODAY)
+    for page in ("index.html", "books/index.html", "books/horror/index.html", "about/index.html"):
+        html = (tmp_path / page).read_text(encoding="utf-8")
+        m = re.search(r'<p class="stale" role="status" hidden data-generated="([^"]+)" data-stale-hours="(\d+)">', html)
+        assert m and datetime.fromisoformat(m[1]) == generated and int(m[2]) == config.STALE_HOURS
+        assert "last updated on Friday 25 September 2026 at 09:49 BST. The daily update is running late" in html
