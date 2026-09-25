@@ -201,3 +201,17 @@ def test_running_late_notice_is_in_every_page_but_hidden(tmp_path):
         m = re.search(r'<p class="stale" role="status" hidden data-generated="([^"]+)" data-stale-hours="(\d+)">', html)
         assert m and datetime.fromisoformat(m[1]) == generated and int(m[2]) == config.STALE_HOURS
         assert "last updated on Friday 25 September 2026 at 09:49 BST. The daily update is running late" in html
+
+
+def test_home_screen_icons_and_manifest(tmp_path):
+    import json
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'<link rel="apple-touch-icon" href="/static/icon-180\.png\?v=[0-9a-f]{8}">', home)
+    assert re.search(r'<link rel="manifest" href="/static/manifest\.webmanifest\?v=[0-9a-f]{8}">', home)
+    manifest = json.loads((tmp_path / "static" / "manifest.webmanifest").read_text(encoding="utf-8"))
+    assert manifest["short_name"] == "Brand New" and manifest["start_url"] == "/"
+    for icon in manifest["icons"]:  # icon paths are relative to the manifest, in /static/
+        png = (tmp_path / "static" / icon["src"]).read_bytes()
+        size = int(icon["sizes"].split("x")[0])
+        assert png[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(png[16:20], "big") == size
