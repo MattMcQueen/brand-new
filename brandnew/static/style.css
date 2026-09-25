@@ -111,14 +111,14 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
 /* The cover fan: up to three covers, overlapping and tilted, spreading a little on hover */
-.tile-fan { display: flex; align-items: flex-end; height: 96px; margin: 0 0 8px 4px; }
+.tile-fan { display: flex; align-items: flex-end; height: 122px; margin: 0 0 8px 4px; }
 .tile-fan img {
-  width: 60px; height: 90px; object-fit: cover; border-radius: 4px; background: var(--accent-soft);
+  width: 76px; height: 114px; object-fit: cover; border-radius: 4px; background: var(--accent-soft);
   border: 2px solid var(--surface); box-shadow: 0 2px 8px rgb(0 0 0 / .25); transition: transform .2s ease;
 }
-.tile-fan-music img { width: 80px; height: 80px; }
-.tile-fan img + img { margin-left: -20px; }
-.tile-fan-music img + img { margin-left: -30px; }
+.tile-fan-music img { width: 92px; height: 92px; }  /* three still fit the narrowest tile (198px inside) */
+.tile-fan img + img { margin-left: -24px; }
+.tile-fan-music img + img { margin-left: -42px; }
 .tile-fan img:nth-child(1) { transform: rotate(-7deg); }
 .tile-fan img:nth-child(2) { transform: translateY(-4px); z-index: 1; }
 .tile-fan img:nth-child(3) { transform: rotate(7deg); }

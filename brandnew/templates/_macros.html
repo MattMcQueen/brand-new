@@ -87,7 +87,7 @@
       {# A fan of covers from the genre's latest releases (decorative: the link text says it all) #}
       <span class="tile-fan tile-fan-{{ kind }}" aria-hidden="true">
       {% for r in p.covers %}
-        <img src="{{ r.cover }}" alt="" width="{{ 60 if kind == "books" else 80 }}" height="{{ 90 if kind == "books" else 80 }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="{{ r.cover }}" alt="" width="{{ 76 if kind == "books" else 92 }}" height="{{ 114 if kind == "books" else 92 }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       {% else %}
         {{ icon(kind) }}
       {% endfor %}
