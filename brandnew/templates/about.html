@@ -3,7 +3,7 @@
 {% block description %}What Brand New is, what it can and can't tell you, how its affiliate links work, and where its data comes from.{% endblock %}
 {% block kofi_line %}{% endblock %}
 {% macro chips(shops_) -%}
-<ul class="chips" role="list">{% for s in shops_ %}<li>{{ s.name }}</li>{% endfor %}</ul>
+<ul class="shop-chips" role="list">{% for s in shops_ %}<li>{{ s.name }}</li>{% endfor %}</ul>
 {%- endmacro %}
 {% block main %}
 <article class="about">

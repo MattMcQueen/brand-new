@@ -107,7 +107,7 @@ def test_books_and_albums_have_other_shops(tmp_path):
     assert "Also on Amazon" not in music and "Ebooks &amp; audiobooks" not in music
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="other-shops"' in about
-    chips = [re.findall(r"<li>([^<]+)</li>", ul) for ul in re.findall(r'<ul class="chips" role="list">(.*?)</ul>', about)]
+    chips = [re.findall(r"<li>([^<]+)</li>", ul) for ul in re.findall(r'<ul class="shop-chips" role="list">(.*?)</ul>', about)]
     assert chips == [["Waterstones", "Bookshop.org", "Foyles", "Blackwell&#39;s", "Hive"],
                      ["Kobo", "Google Play Books", "Spotify"],
                      ["Spotify", "Apple Music", "YouTube Music", "Amazon Music", "Deezer", "Bandcamp"],
@@ -410,3 +410,8 @@ def test_kindle_and_audible_are_small_buttons_under_the_amazon_one(tmp_path):
         links = re.findall(r'<a href="([^"]+)" rel="([^"]+)"[^>]*aria-label="Search Amazon UK[^"]*">(\w+)</a>', row)
         assert [text for _, _, text in links] == ["Kindle", "Audible"]
         assert all("tag=test-21" in href and rel == config.AFFILIATE_REL for href, rel, _ in links)
+
+
+def test_about_styles_dont_leak_onto_the_genre_switcher():
+    css = (render.STATIC / "style.css").read_text(encoding="utf-8")
+    assert len(re.findall(r"^\.chips \{", css, re.M)) == 1  # the genre switcher's; About uses .shop-chips

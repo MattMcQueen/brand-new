@@ -291,8 +291,8 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .shop-groups dt { margin-bottom: 6px; font-weight: 700; }
 .shop-groups dd { margin: 0; }
 .shop-groups dd p { margin: 8px 0 0; font-size: .92rem; color: var(--muted); }
-.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chips li { padding: 3px 11px; border-radius: 999px; background: var(--accent-soft); font-size: .88rem; }
+.shop-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.shop-chips li { padding: 3px 11px; border-radius: 999px; background: var(--accent-soft); font-size: .88rem; }
 .points { padding-left: 1.2em; }
 .points li { margin-bottom: 6px; }
 .about .updated { margin-top: 36px; }
