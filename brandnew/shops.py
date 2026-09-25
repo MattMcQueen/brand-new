@@ -36,12 +36,12 @@ BOOKSHOPS = (
 )
 
 # Ebooks and audiobooks have their own ISBNs, and not every book has them, so these are
-# always title + author searches.
+# always title + author searches. No Audible: it's Amazon's, and only the Audible link under the
+# Amazon button (through amazon.co.uk, with the Associates tag) can earn anything.
 DIGITAL_SHOPS = (
     Shop("Kobo", "https://www.kobo.com/gb/en/search?query={q}", formats="ebooks & audiobooks"),
     Shop("Google Play Books", "https://play.google.com/store/search?q={q}&c=books&gl=GB",
          formats="ebooks & audiobooks"),
-    Shop("Audible", "https://www.audible.co.uk/search?keywords={q}", formats="audiobooks"),
     Shop("Spotify", "https://open.spotify.com/search/{qp}/audiobooks", formats="audiobooks"),
 )
 DIGITAL_NOTE = "Not every book has an ebook or audiobook, so these open a search."
