@@ -2,7 +2,7 @@
 import hashlib
 import json
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from itertools import count, groupby
 from pathlib import Path
@@ -32,6 +32,7 @@ class GenrePage:
     @property
     def count(self) -> int:
         return len(self.past) + sum(len(rs) for _, rs in self.upcoming)
+    covers: list[Release] = field(default_factory=list)  # for the genre's tile: see pick_tile_covers
 
 
 def genre_url(g: Genre) -> str:
@@ -69,6 +70,18 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
                       key=_upcoming_key)
     months = [(format_month(d), list(rs)) for d, rs in groupby(upcoming, key=lambda r: r.date.replace(day=1))]
     return GenrePage(genre, past, past_days, months)
+
+
+def pick_tile_covers(pages: list[GenrePage], per_tile: int = 3) -> None:
+    """Give each genre's tile up to `per_tile` covers: what's just out first, then what's next.
+    A release in several genres would otherwise front every one of their tiles, so covers already
+    used by an earlier tile are only taken when a genre has nothing else."""
+    used = set()
+    for p in pages:
+        shown = [r for r in p.past + [r for _, rs in p.upcoming for r in rs] if r.cover]
+        fresh = [r for r in shown if r.id not in used]
+        p.covers = (fresh + [r for r in shown if r.id in used])[:per_tile]
+        used.update(r.id for r in p.covers)
 
 
 def lower_name(name: str) -> str:
@@ -172,6 +185,8 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
         shutil.rmtree(child) if child.is_dir() else child.unlink()
     env = _env(amazon_tag)
     pages = {g.slug + g.kind: genre_page(g, releases, today) for g in config.ALL_GENRES}
+    for kind in ("books", "music"):
+        pick_tile_covers([pages[g.slug + g.kind] for g in config.genres_of(kind)])
     common = dict(updated=format_updated(generated), generated_iso=generated.isoformat(), pages=pages,
                   book_pages=[pages[g.slug + g.kind] for g in config.BOOK_GENRES],
                   music_pages=[pages[g.slug + g.kind] for g in config.MUSIC_GENRES])

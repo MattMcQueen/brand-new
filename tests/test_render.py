@@ -269,3 +269,28 @@ def test_structured_data_cant_break_out_of_script():
     assert "<" not in text and ">" not in text and "&" not in text
     item = json.loads(text)[0]["mainEntity"]["itemListElement"][0]["item"]
     assert item["name"] == r.title and [a["name"] for a in item["author"]] == ["X", "Y & Z"]
+
+
+def test_tile_covers_prefer_releases_no_earlier_tile_used():
+    def rel(i, genres, cover=True):
+        return Release(kind="music", id=f"r{i}", title=f"R{i}", by="A", date=TODAY - timedelta(days=1),
+                       source="test", amazon_url="", genres=genres, cover=f"https://x/{i}.jpg" if cover else None,
+                       popularity=100 - i)
+    releases = [rel(0, ["rock", "indie"]), rel(1, ["rock"]), rel(2, ["rock"]), rel(3, ["rock"]),
+                rel(4, ["indie"]), rel(5, ["indie"], cover=False)]
+    rock, indie = (render.genre_page(g, releases, TODAY) for g in config.MUSIC_GENRES if g.slug in ("rock", "indie"))
+    render.pick_tile_covers([rock, indie])
+    assert [r.id for r in rock.covers] == ["r0", "r1", "r2"]
+    assert [r.id for r in indie.covers] == ["r4", "r0"]  # its own first; the shared one only to fill up
+
+
+def test_tiles_show_a_cover_fan_or_the_kind_icon(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    fans = re.findall(r'<span class="tile-fan tile-fan-(books|music)" aria-hidden="true">(.*?)</span>', home, re.S)
+    assert len(fans) == len(config.ALL_GENRES)
+    for kind, fan in fans:
+        imgs = fan.count("<img ")
+        assert imgs <= 3 and (imgs or f'href="#icon-{kind}"' in fan)
+        assert imgs == fan.count('alt=""') == fan.count('referrerpolicy="no-referrer"')
+    assert '<span class="tile-fan' in (tmp_path / "books" / "index.html").read_text(encoding="utf-8")

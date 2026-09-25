@@ -84,6 +84,14 @@
   <ul class="tiles" role="list">
   {% for p in pages %}
     <li><a class="tile" href="{{ p.url }}">
+      {# A fan of covers from the genre's latest releases (decorative: the link text says it all) #}
+      <span class="tile-fan tile-fan-{{ kind }}" aria-hidden="true">
+      {% for r in p.covers %}
+        <img src="{{ r.cover }}" alt="" width="{{ 60 if kind == "books" else 80 }}" height="{{ 90 if kind == "books" else 80 }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      {% else %}
+        {{ icon(kind) }}
+      {% endfor %}
+      </span>
       <span class="tile-name">{{ p.genre.name }}</span>
       {% if p.genre.blurb %}<span class="tile-blurb">{{ p.genre.blurb }}</span>{% endif %}
       <span class="tile-count">{{ p.past|length }} just out · {{ p.count - p.past|length }} coming soon</span>
