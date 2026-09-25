@@ -56,6 +56,18 @@ RECORD_SHOPS = (
 )
 
 
+# Streaming (and Bandcamp, which streams and sells). Artist + title searches; none earn anything.
+STREAMING = (
+    Shop("Spotify", "https://open.spotify.com/search/{qp}/albums"),
+    Shop("Apple Music", "https://music.apple.com/gb/search?term={qp}"),
+    Shop("YouTube Music", "https://music.youtube.com/search?q={q}"),
+    Shop("Amazon Music", "https://music.amazon.co.uk/search/{qp}"),
+    Shop("Deezer", "https://www.deezer.com/en/search/{qp}/album"),
+    Shop("Bandcamp", "https://bandcamp.com/search?q={q}&item_type=a"),
+)
+STREAMING_NOTE = "Albums that aren't out yet usually can't be streamed until release day."
+
+
 def _book_query(title: str, by: str) -> str:
     return f"{title.split(':')[0].strip()} {by.split(',')[0].strip()}"
 
@@ -80,6 +92,10 @@ def album_links(artist: str, title: str) -> list[tuple[str, str]]:
     return _searches(RECORD_SHOPS, f"{artist} {title}")
 
 
+def listen_links(artist: str, title: str) -> list[tuple[str, str]]:
+    return _searches(STREAMING, f"{artist} {title}")
+
+
 def _group(heading: str, shops: tuple[Shop, ...], links: list[tuple[str, str]], note: str = "") -> Group:
     return Group(heading, [(name, url, s.formats) for s, (name, url) in zip(shops, links)], note)
 
@@ -89,4 +105,5 @@ def groups_for(kind: str, id_: str, title: str, by: str, uk_edition: bool) -> li
     if kind == "books":
         return [_group("Bookshops", BOOKSHOPS, book_links(id_, title, by, uk_edition)),
                 _group("Ebooks & audiobooks", DIGITAL_SHOPS, digital_links(title, by), DIGITAL_NOTE)]
-    return [_group("Record shops", RECORD_SHOPS, album_links(by, title))]
+    return [_group("Listen", STREAMING, listen_links(by, title), STREAMING_NOTE),
+            _group("Record shops", RECORD_SHOPS, album_links(by, title))]

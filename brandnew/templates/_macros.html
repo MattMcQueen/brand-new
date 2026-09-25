@@ -45,11 +45,12 @@
     {% endif %}
     {% set pid = "shops-" ~ next_id() %}
     <button class="more-shops" type="button" popovertarget="{{ pid }}"
-            title="Other shops" aria-label="{{ r.title }} at other shops">
-      {{- icon("store") }}<span>Other shops</span></button>
+            {% if r.kind == "books" %}title="Other shops" aria-label="{{ r.title }} at other shops"
+            {%- else %}title="Listen or buy elsewhere" aria-label="Listen to or buy {{ r.title }} elsewhere"{% endif %}>
+      {{- icon("store") }}<span>{{ "Other shops" if r.kind == "books" else "Listen & buy" }}</span></button>
     <div class="shops" id="{{ pid }}" popover>
       <div class="shops-head">
-        <p class="shops-title"><strong>{{ r.title }}</strong><br>at other UK shops</p>
+        <p class="shops-title"><strong>{{ r.title }}</strong><br>{{ "at other UK shops" if r.kind == "books" else "other places to listen or buy" }}</p>
         <button class="icon-btn" type="button" popovertarget="{{ pid }}" popovertargetaction="hide"
                 title="Close" aria-label="Close">{{ icon("close") }}</button>
       </div>
