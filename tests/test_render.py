@@ -107,7 +107,7 @@ def test_books_and_albums_have_other_shops(tmp_path):
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="other-shops"' in about and "Waterstones, Bookshop.org, Foyles, Blackwell&#39;s and Hive" in about
     assert "HMV, Rough Trade, Norman Records, Banquet Records and Resident" in about
-    assert "Kobo, Google Play Books, Audible and Spotify" in about
+    assert "Kobo, Google Play Books and Spotify" in about
 
 
 def test_rebuild_empties_the_output_folder_but_keeps_it(tmp_path):

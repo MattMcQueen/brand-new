@@ -23,7 +23,7 @@ def test_album_links_search_artist_and_title():
 
 def test_digital_links_are_searches_and_spotify_uses_a_path():
     links = dict(shops.digital_links("Night: A Thriller", "Ann Author, Bob Writer"))
-    assert list(links) == ["Kobo", "Google Play Books", "Audible", "Spotify"]
+    assert list(links) == ["Kobo", "Google Play Books", "Spotify"]
     assert links["Kobo"] == "https://www.kobo.com/gb/en/search?query=Night+Ann+Author"
     assert links["Spotify"] == "https://open.spotify.com/search/Night%20Ann%20Author/audiobooks"
 
