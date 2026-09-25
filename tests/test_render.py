@@ -180,6 +180,19 @@ def test_books_and_music_have_their_own_pages(tmp_path):
     assert f"{config.SITE_URL}/books/</loc>" in (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
 
 
+def test_link_previews(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert '<meta property="og:url" content="https://brandnew.matt-rarely-writes.co.uk/books/horror/">' in genre
+    assert re.search(r'<meta property="og:image" content="https://brandnew\.matt-rarely-writes\.co\.uk'
+                     r'/static/share\.png\?v=[0-9a-f]{8}">', genre)
+    assert re.search(r'<meta property="og:description" content="New horror books: \d+ out (this week|in the last '
+                     r'two weeks) and \d+ due over the next three months\.">', genre)
+    assert '<meta name="twitter:card" content="summary_large_image">' in genre
+    assert (tmp_path / "static" / "share.png").read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+    assert render.lower_name("Tech & AI") == "tech & AI"
+
+
 def test_running_late_notice_is_in_every_page_but_hidden(tmp_path):
     generated = datetime(2026, 9, 25, 9, 49, tzinfo=UK)
     render.build(sample.releases(TODAY), generated, tmp_path, TODAY)
