@@ -140,3 +140,8 @@ def test_failed_genre_is_skipped(key):
     books = gb.fetch(TODAY, get_json=api)
     genres = {g for b in books for g in b.genres}
     assert "crime-thrillers" not in genres and "literary-fiction" in genres
+
+
+def test_uk_edition_flag():
+    assert gb.to_release(item(publisher="Pan Macmillan"), "horror", TODAY).uk_edition
+    assert not gb.to_release(item(publisher="Berkley"), "horror", TODAY).uk_edition

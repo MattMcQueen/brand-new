@@ -13,6 +13,10 @@
 <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>
 {%- elif name == "books" -%}
 <path d="M2 5h6a4 4 0 0 1 4 4v11a3 3 0 0 0-3-3H2zM22 5h-6a4 4 0 0 0-4 4v11a3 3 0 0 1 3-3h7z"/>
+{%- elif name == "store" -%}
+<path d="M3 9l1.5-5h15L21 9M3 9h18M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M5 12v8h14v-8M10 20v-5h4v5"/>
+{%- elif name == "close" -%}
+<path d="M6 6l12 12M18 6L6 18"/>
 {%- elif name == "music" -%}
 <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
 {%- endif -%}
@@ -41,6 +45,26 @@
     <a class="buy" href="{{ r.amazon_url|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
        title="Find it on Amazon UK" aria-label="{{ r.title }} by {{ r.by }} on Amazon UK (opens in a new tab)">
       {{- icon("external") }}<span>on Amazon UK</span></a>
+    {% if r.kind == "books" %}
+    {% set pid = "shops-" ~ next_id() %}
+    <button class="more-shops" type="button" popovertarget="{{ pid }}"
+            title="Other bookshops" aria-label="{{ r.title }} at other bookshops">
+      {{- icon("store") }}<span>Other shops</span></button>
+    <div class="shops" id="{{ pid }}" popover>
+      <div class="shops-head">
+        <p class="shops-title"><strong>{{ r.title }}</strong><br>at other UK bookshops</p>
+        <button class="icon-btn" type="button" popovertarget="{{ pid }}" popovertargetaction="hide"
+                title="Close" aria-label="Close">{{ icon("close") }}</button>
+      </div>
+      <ul class="shops-list">
+        {% for name, url in book_shops(r) %}
+        <li><a href="{{ url }}" rel="{{ config.OTHER_SHOP_REL }}" target="_blank"
+               aria-label="{{ r.title }} at {{ name }} (opens in a new tab)">{{ name }}{{ icon("external") }}</a></li>
+        {% endfor %}
+      </ul>
+      <p class="shops-note">These aren't affiliate links, so I earn nothing from them. <a href="/about/#other-shops">About the links</a></p>
+    </div>
+    {% endif %}
   </div>
   <div class="card-source">
     {% if r.info_url and r.source == "google-books" %}

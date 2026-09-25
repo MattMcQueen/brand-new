@@ -2,12 +2,12 @@
 import shutil
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
-from itertools import groupby
+from itertools import count, groupby
 from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from . import amazon, config, store
+from . import amazon, config, shops, store
 from .config import Genre
 from .models import Release
 from .ukdates import format_date, format_month, format_updated
@@ -62,7 +62,10 @@ def _env(amazon_tag: str | None) -> Environment:
                       trim_blocks=True, lstrip_blocks=True)
     env.filters["uk_date"] = format_date
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
-    env.globals.update(config=config, genre_url=genre_url, kind_names=config.KIND_NAMES)
+    ids = count(1)
+    env.globals.update(config=config, genre_url=genre_url, kind_names=config.KIND_NAMES,
+                       book_shops=lambda r: shops.book_links(r.id, r.title, r.by, r.uk_edition),
+                       shops=shops.BOOKSHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env
 
 

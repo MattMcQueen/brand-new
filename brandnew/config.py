@@ -10,6 +10,7 @@ USER_AGENT = f"BrandNew/0.1 ( {SITE_URL} )"
 AMAZON_TAG = "matsbasblo-21"  # Associates UK tracking ID (public: it's in every link). AMAZON_TAG env var overrides.
 AMAZON_DISCLOSURE ="As an Amazon Associate I earn from qualifying purchases."
 AFFILIATE_REL = "sponsored nofollow noopener"
+OTHER_SHOP_REL = "nofollow noopener"  # other bookshops: not affiliate links
 
 PAST_DAYS = 7            # "Out this week"
 PAST_FALLBACK_DAYS = 14  # used when a genre has nothing in the last 7 days

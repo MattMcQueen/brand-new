@@ -86,3 +86,16 @@ def test_build_refuses_thin_data(tmp_path):
     assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "1000"]) == 1
     assert not out.exists()
     assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "10"]) == 0
+
+
+def test_books_have_other_shops_but_albums_dont(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    ids = re.findall(r'<div class="shops" id="([^"]+)" popover>', books)
+    assert ids and len(ids) == len(set(ids)) == books.count('class="more-shops"')
+    assert all(f'popovertarget="{i}"' in books for i in ids)
+    shop_links = re.findall(r'<li><a href="([^"]+)" rel="([^"]+)"', books)
+    assert shop_links and all(rel == config.OTHER_SHOP_REL and "tag=" not in href for href, rel in shop_links)
+    assert "more-shops" not in (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert 'id="other-shops"' in about and "Waterstones, Bookshop.org, Foyles, Blackwell&#39;s and Hive" in about
