@@ -208,6 +208,6 @@ def test_icons_are_defined_once_and_support_is_a_landmark(tmp_path):
     html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert html.count('<symbol id="icon-external"') == 1                     # drawn once...
     assert html.count('<use href="#icon-external"/>') > 5                     # ...used many times
-    assert "<path" not in html.split("</defs></svg>", 1)[1].split('<a class="support-btn"')[0]
+    assert not re.search(r'<svg class="icon"[^>]*>(?:(?!</svg>).)*<path', html, re.S)  # icons only <use>
     assert re.search(r'<aside class="support" aria-label="Support Brand New">\s*(\{#.*?#\}\s*)?<a class="support-btn"',
                      html, re.S)
