@@ -72,6 +72,14 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     return GenrePage(genre, past, past_days, months)
 
 
+COVER_HUES = 8
+
+
+def cover_hue(r: Release) -> int:
+    """Which colour scheme a release's made-up cover uses: fixed per release, so it looks the same every day."""
+    return int(hashlib.sha1(r.id.encode()).hexdigest()[:8], 16) % COVER_HUES
+
+
 def countdown(d: date, today: date) -> str | None:
     """The sticker on a release's cover, if it's close to its release date."""
     days = (d - today).days
@@ -180,7 +188,7 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["json_ld"] = json_ld
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
-    env.globals.update(config=config, genre_url=genre_url, countdown=countdown, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
+    env.globals.update(config=config, genre_url=genre_url, countdown=countdown, cover_hue=cover_hue, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
                        other_shops=lambda r: shops.groups_for(r.kind, r.id, r.title, r.by, r.uk_edition),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
