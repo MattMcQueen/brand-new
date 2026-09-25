@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% macro tiles(kind, pages) %}
+<section class="kind" id="{{ kind }}" aria-labelledby="{{ kind }}-h">
+  <h2 id="{{ kind }}-h">{{ icon(kind) }} {{ kind_names[kind] }}</h2>
+  <ul class="tiles" role="list">
+  {% for p in pages %}
+    <li><a class="tile" href="{{ p.url }}">
+      <span class="tile-name">{{ p.genre.name }}</span>
+      {% if p.genre.blurb %}<span class="tile-blurb">{{ p.genre.blurb }}</span>{% endif %}
+      <span class="tile-count">{{ p.past|length }} just out · {{ p.count - p.past|length }} coming soon</span>
+    </a></li>
+  {% endfor %}
+  </ul>
+</section>
+{% endmacro %}
+{% block main %}
+<div class="intro">
+  <h1>What's new, and what's next</h1>
+  <p>Books and albums from the last week, and the ones due over the next three months. Choose a genre.</p>
+</div>
+{{ tiles("books", book_pages) }}
+{{ tiles("music", music_pages) }}
+{% endblock %}

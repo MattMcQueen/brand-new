@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}About | {{ config.SITE_NAME }}{% endblock %}
+{% block main %}
+<article class="prose">
+  <h1>About Brand New</h1>
+  <p>Brand New lists the books and albums that came out in the last week and those due over the next three months, by genre. The lists are rebuilt automatically every morning.</p>
+  <p>It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
+
+  <h2>Affiliate links</h2>
+  <p>{{ config.AMAZON_DISCLOSURE }} The "on Amazon UK" links are affiliate links: if you buy something after following one, I may earn a small commission at no extra cost to you. Book links go straight to the book where possible; album links open an Amazon search.</p>
+  <p>If you'd rather support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>.</p>
+
+  <h2>Where the data comes from</h2>
+  <ul>
+    <li>Albums: the <a href="https://listenbrainz.org/explore/fresh-releases/">ListenBrainz fresh releases</a> feed, ranked by how many ListenBrainz listeners each artist has, with genres from <a href="https://musicbrainz.org">MusicBrainz</a>. MusicBrainz and ListenBrainz data is released under <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a> by the <a href="https://metabrainz.org">MetaBrainz Foundation</a>.</li>
+    <li>Album covers: the <a href="https://coverartarchive.org">Cover Art Archive</a>.</li>
+    <li>Books and book covers: the <a href="https://books.google.co.uk">Google Books</a> API.</li>
+  </ul>
+  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order.</p>
+
+  <p class="updated">Last updated {{ updated }}.</p>
+</article>
+{% endblock %}
