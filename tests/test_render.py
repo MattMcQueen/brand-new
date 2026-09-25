@@ -134,3 +134,11 @@ def test_about_page_explains_what_the_site_cant_do(tmp_path):
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="limitations"' in about
     assert "price comparison" in about and "in stock" in about and "open a search" in about
+
+
+def test_header_logo_is_the_favicon(tmp_path):
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert '<svg class="logo-mark"' in home and 'aria-hidden="true"' in home
+    assert re.search(r'<link rel="icon" href="/static/favicon\.svg\?v=[0-9a-f]{8}"', home)
+    assert render.logo_svg().count("<polygon") == 1  # the sticker outline

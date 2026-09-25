@@ -57,6 +57,13 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     return GenrePage(genre, sorted(past, key=_past_key), past_days, months)
 
 
+def logo_svg() -> str:
+    """The favicon, inline in the header, so the two can never drift apart."""
+    svg = (STATIC / "favicon.svg").read_text(encoding="utf-8").strip()
+    return svg.replace('<svg xmlns="http://www.w3.org/2000/svg" ',
+                       '<svg class="logo-mark" width="30" height="30" aria-hidden="true" focusable="false" ', 1)
+
+
 def asset_url(name: str) -> str:
     """/static/<name> with a fingerprint of its contents, so browsers fetch it again when it changes."""
     digest = hashlib.sha256((STATIC / name).read_bytes()).hexdigest()[:8]
@@ -70,7 +77,7 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["uk_date"] = format_date
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
-    env.globals.update(config=config, genre_url=genre_url, asset=asset_url, kind_names=config.KIND_NAMES,
+    env.globals.update(config=config, genre_url=genre_url, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
                        other_shops=lambda r: shops.groups_for(r.kind, r.id, r.title, r.by, r.uk_edition),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
