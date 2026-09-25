@@ -205,7 +205,6 @@ h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); padding: 24px 0 32px; font-size: .9rem; color: var(--muted); }
 .site-footer p { margin: 0 0 10px; }
 .disclosure { color: var(--fg); font-weight: 600; }
-.kofi { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .site-footer { padding-bottom: 80px; }  /* room for the Support me button */
 .kofi-line { margin: 40px 0 8px; text-align: center; color: var(--muted); }
 .kofi-line a { font-weight: 600; }

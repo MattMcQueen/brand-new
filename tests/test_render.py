@@ -154,3 +154,6 @@ def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(tmp_path):
     assert 'class="kofi-line"' in (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'class="kofi-line"' not in (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'class="kofi-line"' not in (tmp_path / "404.html").read_text(encoding="utf-8")
+    # The floating button replaced the footer's Ko-fi link.
+    footer = (tmp_path / "index.html").read_text(encoding="utf-8").split('<footer class="site-footer">')[1]
+    assert "Buy me a coffee" not in footer.split("</footer>")[0]
