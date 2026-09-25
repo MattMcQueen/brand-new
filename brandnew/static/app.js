@@ -48,3 +48,40 @@
     });
   });
 })();
+
+// Keep the "Support me" button from covering other buttons: while a button or small link is
+// underneath it, it slides out of the way. Big click targets (like the home page's genre tiles)
+// don't count, since covering a corner of one doesn't stop you clicking it.
+(function () {
+  var btn = document.querySelector(".support-btn");
+  if (!btn || typeof document.elementsFromPoint !== "function") return;
+  var panel = document.getElementById("kofi-panel");
+  var queued = false;
+
+  function coversControl() {
+    var r = btn.getBoundingClientRect();
+    var limit = r.width * r.height * 4;
+    var points = [[r.left + 2, r.top + 2], [r.right - 2, r.top + 2], [r.left + 2, r.bottom - 2],
+                  [r.right - 2, r.bottom - 2], [(r.left + r.right) / 2, (r.top + r.bottom) / 2]];
+    return points.some(function (p) {
+      return document.elementsFromPoint(p[0], p[1]).some(function (el) {
+        if (btn.contains(el) || (panel && panel.contains(el))) return false;
+        var c = el.closest("a, button, input, select, textarea, summary");
+        if (!c) return false;
+        var cr = c.getBoundingClientRect();
+        return cr.width * cr.height < limit;
+      });
+    });
+  }
+  function update() {
+    queued = false;
+    if (panel && panel.matches(":popover-open")) { btn.classList.remove("is-tucked"); return; }
+    btn.classList.remove("is-tucked");  // measure where it would be
+    if (coversControl()) btn.classList.add("is-tucked");
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(update); } }
+  window.addEventListener("scroll", queue, { passive: true });
+  window.addEventListener("resize", queue);
+  if (panel) panel.addEventListener("toggle", queue);
+  queue();
+})();
