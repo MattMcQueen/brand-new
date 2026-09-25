@@ -9,7 +9,7 @@
 
   <h2 id="affiliate-links">How the Amazon links work</h2>
   <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
-  <p>The "on Amazon UK" buttons are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
+  <p>The "on Amazon UK" buttons, and the "Kindle" and "Audible" links under them, are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
   <p>If you follow one of those links and then buy something, Amazon pays me a small commission, a percentage of the price, as thanks for sending you. It generally counts anything you buy within 24 hours of clicking, not only the item you clicked on.</p>
   <p><strong>You don't pay a penny more.</strong> The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p>
   <p>You never have to use them. If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p>
@@ -18,6 +18,7 @@
   <p>Not everyone wants to use Amazon, so every book and album also has an "Other shops" button.</p>
   <ul>
     <li>Books: {% for s in bookshops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</li>
+    <li>Ebooks and audiobooks: {% for s in digital_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</li>
     <li>Albums: {% for s in record_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
   </ul>
   <p>These are <strong>not affiliate links</strong>: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>

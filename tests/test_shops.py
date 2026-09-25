@@ -19,3 +19,17 @@ def test_album_links_search_artist_and_title():
     links = dict(shops.album_links("Neil Young & The Chrome Hearts", "Second Song"))
     assert list(links) == ["HMV", "Rough Trade", "Norman Records", "Banquet Records", "Resident"]
     assert links["HMV"] == "https://hmv.com/search?searchtext=Neil+Young+%26+The+Chrome+Hearts+Second+Song"
+
+
+def test_digital_links_are_searches_and_spotify_uses_a_path():
+    links = dict(shops.digital_links("Night: A Thriller", "Ann Author, Bob Writer"))
+    assert list(links) == ["Kobo", "Google Play Books", "Audible", "Spotify"]
+    assert links["Kobo"] == "https://www.kobo.com/gb/en/search?query=Night+Ann+Author"
+    assert links["Spotify"] == "https://open.spotify.com/search/Night%20Ann%20Author/audiobooks"
+
+
+def test_groups_for_books_and_albums():
+    books = shops.groups_for("books", "9781405975735", "T", "A", uk_edition=True)
+    assert [g.heading for g in books] == ["Bookshops", "Ebooks & audiobooks"]
+    assert books[1].note and all(formats for _, _, formats in books[1].links)
+    assert [g.heading for g in shops.groups_for("music", "mbid", "T", "A", uk_edition=False)] == ["Record shops"]

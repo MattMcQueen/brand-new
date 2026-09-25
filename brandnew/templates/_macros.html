@@ -41,22 +41,34 @@
     <a class="buy" href="{{ r.amazon_url|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
        title="Find it on Amazon UK" aria-label="{{ r.title }} by {{ r.by }} on Amazon UK (opens in a new tab)">
       {{- icon("external") }}<span>on Amazon UK</span></a>
+    {% if r.kind == "books" %}
+    <p class="amazon-formats">Also on Amazon:
+      <a href="{{ amazon_kindle(r)|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
+         title="Search for the Kindle ebook" aria-label="Search Amazon UK for the Kindle ebook of {{ r.title }} (opens in a new tab)">Kindle</a> ·
+      <a href="{{ amazon_audible(r)|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
+         title="Search for the Audible audiobook" aria-label="Search Amazon UK for the Audible audiobook of {{ r.title }} (opens in a new tab)">Audible</a></p>
+    {% endif %}
     {% set pid = "shops-" ~ next_id() %}
     <button class="more-shops" type="button" popovertarget="{{ pid }}"
             title="Other shops" aria-label="{{ r.title }} at other shops">
       {{- icon("store") }}<span>Other shops</span></button>
     <div class="shops" id="{{ pid }}" popover>
       <div class="shops-head">
-        <p class="shops-title"><strong>{{ r.title }}</strong><br>at other UK {{ "bookshops" if r.kind == "books" else "record shops" }}</p>
+        <p class="shops-title"><strong>{{ r.title }}</strong><br>at other UK shops</p>
         <button class="icon-btn" type="button" popovertarget="{{ pid }}" popovertargetaction="hide"
                 title="Close" aria-label="Close">{{ icon("close") }}</button>
       </div>
+      {% for group in other_shops(r) %}
+      <p class="shops-group">{{ group.heading }}</p>
       <ul class="shops-list">
-        {% for name, url in other_shops(r) %}
+        {% for name, url, formats in group.links %}
         <li><a href="{{ url }}" rel="{{ config.OTHER_SHOP_REL }}" target="_blank"
-               aria-label="{{ r.title }} at {{ name }} (opens in a new tab)">{{ name }}{{ icon("external") }}</a></li>
+               aria-label="{{ r.title }} at {{ name }}{% if formats %} ({{ formats }}){% endif %} (opens in a new tab)">
+          <span>{{ name }}{% if formats %} <small>{{ formats }}</small>{% endif %}</span>{{ icon("external") }}</a></li>
         {% endfor %}
       </ul>
+      {% if group.note %}<p class="shops-note">{{ group.note }}</p>{% endif %}
+      {% endfor %}
       <p class="shops-note">These aren't affiliate links, so I earn nothing from them. <a href="/about/#other-shops">About the links</a></p>
     </div>
   </div>

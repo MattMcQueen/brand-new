@@ -1,4 +1,5 @@
 """Turns release data into the static site in dist/."""
+import hashlib
 import shutil
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -56,6 +57,12 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     return GenrePage(genre, sorted(past, key=_past_key), past_days, months)
 
 
+def asset_url(name: str) -> str:
+    """/static/<name> with a fingerprint of its contents, so browsers fetch it again when it changes."""
+    digest = hashlib.sha256((STATIC / name).read_bytes()).hexdigest()[:8]
+    return f"/static/{name}?v={digest}"
+
+
 def _env(amazon_tag: str | None) -> Environment:
     env = Environment(loader=PackageLoader("brandnew", "templates"),
                       autoescape=select_autoescape(["html", "xml"]),
@@ -63,18 +70,22 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["uk_date"] = format_date
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
-    env.globals.update(config=config, genre_url=genre_url, kind_names=config.KIND_NAMES,
-                       other_shops=lambda r: shops.links_for(r.kind, r.id, r.title, r.by, r.uk_edition),
-                       bookshops=shops.BOOKSHOPS, record_shops=shops.RECORD_SHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
+    env.globals.update(config=config, genre_url=genre_url, asset=asset_url, kind_names=config.KIND_NAMES,
+                       other_shops=lambda r: shops.groups_for(r.kind, r.id, r.title, r.by, r.uk_edition),
+                       amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
+                       amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
+                       bookshops=shops.BOOKSHOPS, digital_shops=shops.DIGITAL_SHOPS, record_shops=shops.RECORD_SHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env
 
 
 def build(releases: list[Release], generated: datetime, out: Path, today: date,
           amazon_tag: str | None = None) -> list[str]:
     """Write the whole site to `out`. Returns the page paths written."""
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
+    # Empty `out` rather than deleting it: a running preview (e.g. Docker) keeps a hold on the
+    # folder itself and would go on serving the old files if it were replaced.
+    out.mkdir(parents=True, exist_ok=True)
+    for child in out.iterdir():
+        shutil.rmtree(child) if child.is_dir() else child.unlink()
     env = _env(amazon_tag)
     pages = {g.slug + g.kind: genre_page(g, releases, today) for g in config.ALL_GENRES}
     common = dict(updated=format_updated(generated), pages=pages,

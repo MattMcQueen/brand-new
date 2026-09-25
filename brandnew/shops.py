@@ -4,14 +4,22 @@ Plain links built from the ISBN or a search, never fetched. None of them
 earn anything; if an affiliate scheme is joined later, its code goes into the link here.
 """
 from dataclasses import dataclass
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 
 
 @dataclass(frozen=True)
 class Shop:
     name: str
-    search: str     # "{q}" is replaced with the url-encoded search words
+    search: str     # "{q}" is replaced with the search words, url-encoded ("{qp}": encoded for a path)
     by_isbn: str = ""  # books: "{isbn}" is replaced; each of these lands on the book's own page
+    formats: str = ""  # shown next to the name, e.g. "ebooks & audiobooks"
+
+
+@dataclass(frozen=True)
+class Group:
+    heading: str
+    links: list[tuple[str, str, str]]  # (shop name, url, formats)
+    note: str = ""
 
 
 BOOKSHOPS = (
@@ -27,6 +35,16 @@ BOOKSHOPS = (
          by_isbn="https://www.hive.co.uk/Search/Keyword?keyword={isbn}"),
 )
 
+# Ebooks and audiobooks have their own ISBNs, and not every book has them, so these are
+# always title + author searches.
+DIGITAL_SHOPS = (
+    Shop("Kobo", "https://www.kobo.com/gb/en/search?query={q}", formats="ebooks & audiobooks"),
+    Shop("Google Play Books", "https://play.google.com/store/search?q={q}&c=books&gl=GB",
+         formats="ebooks & audiobooks"),
+    Shop("Audible", "https://www.audible.co.uk/search?keywords={q}", formats="audiobooks"),
+    Shop("Spotify", "https://open.spotify.com/search/{qp}/audiobooks", formats="audiobooks"),
+)
+DIGITAL_NOTE = "Not every book has an ebook or audiobook, so these open a search."
 
 # No ISBN for albums, so these are all artist + title searches.
 RECORD_SHOPS = (
@@ -38,19 +56,37 @@ RECORD_SHOPS = (
 )
 
 
+def _book_query(title: str, by: str) -> str:
+    return f"{title.split(':')[0].strip()} {by.split(',')[0].strip()}"
+
+
+def _searches(shops: tuple[Shop, ...], words: str) -> list[tuple[str, str]]:
+    return [(s.name, s.search.format(q=quote_plus(words), qp=quote(words))) for s in shops]
+
+
 def book_links(isbn: str | None, title: str, by: str, uk_edition: bool) -> list[tuple[str, str]]:
     """(shop name, url) pairs. Like the Amazon links: straight to the book for a UK edition,
     otherwise a title + author search, because shops only know the edition they sell."""
     if uk_edition and isbn:
         return [(s.name, s.by_isbn.format(isbn=isbn)) for s in BOOKSHOPS]
-    q = quote_plus(f"{title.split(':')[0].strip()} {by.split(',')[0].strip()}")
-    return [(s.name, s.search.format(q=q)) for s in BOOKSHOPS]
+    return _searches(BOOKSHOPS, _book_query(title, by))
+
+
+def digital_links(title: str, by: str) -> list[tuple[str, str]]:
+    return _searches(DIGITAL_SHOPS, _book_query(title, by))
 
 
 def album_links(artist: str, title: str) -> list[tuple[str, str]]:
-    q = quote_plus(f"{artist} {title}")
-    return [(s.name, s.search.format(q=q)) for s in RECORD_SHOPS]
+    return _searches(RECORD_SHOPS, f"{artist} {title}")
 
 
-def links_for(kind: str, id_: str, title: str, by: str, uk_edition: bool) -> list[tuple[str, str]]:
-    return book_links(id_, title, by, uk_edition) if kind == "books" else album_links(by, title)
+def _group(heading: str, shops: tuple[Shop, ...], links: list[tuple[str, str]], note: str = "") -> Group:
+    return Group(heading, [(name, url, s.formats) for s, (name, url) in zip(shops, links)], note)
+
+
+def groups_for(kind: str, id_: str, title: str, by: str, uk_edition: bool) -> list[Group]:
+    """What the "Other shops" popover lists for a release."""
+    if kind == "books":
+        return [_group("Bookshops", BOOKSHOPS, book_links(id_, title, by, uk_edition)),
+                _group("Ebooks & audiobooks", DIGITAL_SHOPS, digital_links(title, by), DIGITAL_NOTE)]
+    return [_group("Record shops", RECORD_SHOPS, album_links(by, title))]

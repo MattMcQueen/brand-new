@@ -9,9 +9,9 @@
 <link rel="canonical" href="{{ config.SITE_URL }}{{ path }}">
 <meta name="color-scheme" content="light dark">
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="stylesheet" href="/static/style.css">
-<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-<script src="/static/app.js" defer></script>
+<link rel="stylesheet" href="{{ asset('style.css') }}">
+<link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+<script src="{{ asset('app.js') }}" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>

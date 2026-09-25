@@ -96,10 +96,34 @@ def test_books_and_albums_have_other_shops(tmp_path):
     assert all(f'popovertarget="{i}"' in books for i in ids)
     shop_links = re.findall(r'<li><a href="([^"]+)" rel="([^"]+)"', books)
     assert shop_links and all(rel == config.OTHER_SHOP_REL and "tag=" not in href for href, rel in shop_links)
-    assert "at other UK bookshops" in books
+    assert "Ebooks &amp; audiobooks" in books and "open.spotify.com/search/" in books
+    formats = re.findall(r'<a href="(https://www\.amazon\.co\.uk/s\?[^"]+)" rel="([^"]+)"', books)
+    assert any("i=digital-text" in h for h, _ in formats) and any("i=audible" in h for h, _ in formats)
+    assert all("tag=" not in h or rel == config.AFFILIATE_REL for h, rel in formats)
     music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert music.count('class="more-shops"') == music.count('class="card"') > 0
-    assert "at other UK record shops" in music and "hmv.com/search?searchtext=" in music
+    assert "Record shops" in music and "hmv.com/search?searchtext=" in music
+    assert "Also on Amazon" not in music and "Ebooks &amp; audiobooks" not in music
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="other-shops"' in about and "Waterstones, Bookshop.org, Foyles, Blackwell&#39;s and Hive" in about
     assert "HMV, Rough Trade, Norman Records, Banquet Records and Resident" in about
+    assert "Kobo, Google Play Books, Audible and Spotify" in about
+
+
+def test_rebuild_empties_the_output_folder_but_keeps_it(tmp_path):
+    out = tmp_path / "dist"
+    out.mkdir()
+    (out / "stale.html").write_text("old", encoding="utf-8")
+    (out / "old-dir").mkdir()
+    before = out.stat().st_ino
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), out, TODAY)
+    assert not (out / "stale.html").exists() and not (out / "old-dir").exists()
+    assert (out / "index.html").exists() and out.stat().st_ino == before
+
+
+def test_static_files_are_fingerprinted(tmp_path):
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'href="/static/style\.css\?v=[0-9a-f]{8}"', home)
+    assert re.search(r'src="/static/app\.js\?v=[0-9a-f]{8}"', home)
+    assert render.asset_url("style.css") != render.asset_url("app.js")
