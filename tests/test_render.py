@@ -127,3 +127,10 @@ def test_static_files_are_fingerprinted(tmp_path):
     assert re.search(r'href="/static/style\.css\?v=[0-9a-f]{8}"', home)
     assert re.search(r'src="/static/app\.js\?v=[0-9a-f]{8}"', home)
     assert render.asset_url("style.css") != render.asset_url("app.js")
+
+
+def test_about_page_explains_what_the_site_cant_do(tmp_path):
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert 'id="limitations"' in about
+    assert "price comparison" in about and "in stock" in about and "open a search" in about
