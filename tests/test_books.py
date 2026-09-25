@@ -44,6 +44,20 @@ def test_rejects(kw):
     assert gb.to_release(item(**kw), "horror", TODAY) is None
 
 
+@pytest.mark.parametrize("title, subtitle, expected", [
+    ("Dark Waters: Now a major ITV Drama 'THE DARK'", None, "Dark Waters"),
+    ("Die Famous: A Novel", None, "Die Famous"),
+    ("Die Famous", "A Novel", "Die Famous"),
+    ("Suffer In Silence: the brand new gripping Katie Maguire", None, "Suffer In Silence"),
+    ("K-9 In Pursuit (K-9 Avalanche Rescue, Book 4) (Mills & Boon Heroes)", None,
+     "K-9 In Pursuit (K-9 Avalanche Rescue, Book 4)"),
+    ("King Zero: The New James Bond Novel", None, "King Zero: The New James Bond Novel"),
+    ("Zone", "Book Three of the Meiji Trilogy", "Zone: Book Three of the Meiji Trilogy"),
+])
+def test_clean_title(title, subtitle, expected):
+    assert gb.clean_title(title, subtitle) == expected
+
+
 def test_no_categories_is_allowed():
     assert gb.to_release(item(cats=None), "horror", TODAY) is not None
 
