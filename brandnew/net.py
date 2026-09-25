@@ -1,0 +1,49 @@
+"""Polite JSON fetching: a proper User-Agent, retries, and per-host rate limits."""
+import json
+import re
+import sys
+import time
+import urllib.error
+import urllib.request
+from urllib.parse import urlsplit
+
+from . import config
+
+# Minimum seconds between requests to a host. MusicBrainz asks for at most 1 request per second.
+MIN_INTERVAL = {"musicbrainz.org": 1.1, "api.listenbrainz.org": 0.5, "www.googleapis.com": 0.2}
+_last: dict[str, float] = {}
+
+
+def _redact(url: str) -> str:
+    return re.sub(r"key=[^&]+", "key=***", url)
+
+
+def _wait_turn(host: str) -> None:
+    gap = MIN_INTERVAL.get(host, 0)
+    wait = _last.get(host, 0) + gap - time.monotonic()
+    if wait > 0:
+        time.sleep(wait)
+    _last[host] = time.monotonic()
+
+
+def get_json(url: str, data: dict | list | None = None, tries: int = 4, timeout: int = 60):
+    """GET (or POST when `data` is given) and parse JSON. Raises after the last failed try."""
+    host = urlsplit(url).hostname or ""
+    headers = {"User-Agent": config.USER_AGENT, "Accept": "application/json"}
+    body = None
+    if data is not None:
+        body = json.dumps(data).encode()
+        headers["Content-Type"] = "application/json"
+    for attempt in range(1, tries + 1):
+        _wait_turn(host)
+        try:
+            req = urllib.request.Request(url, data=body, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+            status = getattr(e, "code", None)
+            if attempt == tries or status in (400, 401, 403, 404):
+                raise RuntimeError(f"{_redact(url)[:150]} failed: {e}") from None
+            delay = 5 * attempt if status in (429, 503) else 2 * attempt
+            print(f"  retrying {_redact(url)[:100]} in {delay}s ({e})", file=sys.stderr)
+            time.sleep(delay)

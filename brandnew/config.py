@@ -45,7 +45,7 @@ MUSIC_GENRES = (
     Genre("hip-hop", "Hip hop", "music", ("hip hop", "hip-hop", "rap")),
     Genre("folk", "Folk", "music", ("folk",)),
     Genre("jazz", "Jazz", "music", ("jazz",)),
-    Genre("metal", "Metal", "music", ("metal",)),
+    Genre("metal", "Metal", "music", ("metal", "metalcore")),
     Genre("indie", "Indie", "music", ("indie",)),
 )
 

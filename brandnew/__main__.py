@@ -1,4 +1,4 @@
-"""Command line: python -m brandnew build | serve"""
+"""Command line: python -m brandnew fetch | build | serve"""
 import argparse
 import functools
 import http.server
@@ -6,11 +6,38 @@ import os
 import sys
 from pathlib import Path
 
-from . import render, sample, store
+from . import pipeline, render, sample, store
+from .sources import listenbrainz
 from .ukdates import now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
 DEFAULT_OUT = Path("dist")
+GENRE_CACHE = Path(".cache/artist-genres.json")
+
+
+def cmd_fetch(args) -> int:
+    now = now_uk()
+    today = now.date()
+    previous = []
+    if args.previous:
+        try:
+            _, previous = store.load(args.previous)
+            print(f"Previous run: {len(previous)} releases from {args.previous}", file=sys.stderr)
+        except Exception as e:  # noqa: BLE001 - first run, or the site isn't live yet
+            print(f"No previous data ({e}); carrying on without a fallback.", file=sys.stderr)
+    sources = {"music": lambda: listenbrainz.fetch(today, GENRE_CACHE)}
+    releases = []
+    for kind in ("books", "music"):
+        if kind in sources and kind in args.only:
+            print(f"Fetching {kind}...", file=sys.stderr)
+            releases += pipeline.with_fallback(kind, sources[kind], previous, today)
+        else:
+            releases += [r for r in previous if r.kind == kind]
+    store.save(args.data, releases, now)
+    for kind in ("books", "music"):
+        print(f"{kind}: {sum(r.kind == kind for r in releases)} releases", file=sys.stderr)
+    print(f"Saved {args.data}", file=sys.stderr)
+    return 0
 
 
 def cmd_build(args) -> int:
@@ -41,6 +68,11 @@ def cmd_serve(args) -> int:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="brandnew")
     sub = p.add_subparsers(dest="cmd", required=True)
+    f = sub.add_parser("fetch", help="fetch releases into the data file")
+    f.add_argument("--data", type=Path, default=DEFAULT_DATA)
+    f.add_argument("--previous", help="yesterday's data file or URL, used if a source fails")
+    f.add_argument("--only", nargs="+", choices=["books", "music"], default=["books", "music"])
+    f.set_defaults(func=cmd_fetch)
     b = sub.add_parser("build", help="render the site into dist/")
     b.add_argument("--data", type=Path, default=DEFAULT_DATA)
     b.add_argument("--out", type=Path, default=DEFAULT_OUT)
