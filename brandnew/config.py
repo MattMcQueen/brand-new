@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 
 SITE_NAME = "Brand New"
-SITE_URL = "https://brandnew.matt-rarely-writes.co.uk"
+SITE_URL = "https://brand-new.matt-rarely-writes.co.uk"
 BLOG_URL = "https://www.matt-rarely-writes.co.uk"
 KOFI_URL = "https://ko-fi.com/mattrarelywrites"
 USER_AGENT = f"BrandNew/0.1 ( {SITE_URL} )"
