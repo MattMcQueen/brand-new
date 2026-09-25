@@ -388,10 +388,12 @@ def test_streaming_links_for_upcoming_albums_come_after_record_shops(tmp_path):
     assert "Out on" not in popovers["Out Today"]
 
 
-def test_kindle_and_audible_links_stay_together(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+def test_kindle_and_audible_are_small_buttons_under_the_amazon_one(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
     html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
-    lines = re.findall(r'<p class="amazon-formats">(.*?)</p>', html, re.S)
-    assert lines and all(re.fullmatch(r'Also on Amazon: <span class="formats-links"><a [^>]+>Kindle</a> ·\s*'
-                                      r'<a [^>]+>Audible</a></span>', l, re.S) for l in lines)
-    assert ".formats-links { white-space: nowrap; }" in (tmp_path / "static" / "style.css").read_text(encoding="utf-8")
+    rows = re.findall(r'</a>\s*<div class="amazon-formats" role="group" aria-label="Also on Amazon">(.*?)</div>', html, re.S)
+    assert rows and len(rows) == html.count('class="buy"')
+    for row in rows:
+        links = re.findall(r'<a href="([^"]+)" rel="([^"]+)"[^>]*aria-label="Search Amazon UK[^"]*">(\w+)</a>', row)
+        assert [text for _, _, text in links] == ["Kindle", "Audible"]
+        assert all("tag=test-21" in href and rel == config.AFFILIATE_REL for href, rel, _ in links)

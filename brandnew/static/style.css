@@ -254,9 +254,12 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .shops-list a:hover { background: var(--accent-soft); }
 .shops-list .icon { width: 16px; height: 16px; color: var(--muted); }
 .shops-note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); }
-.amazon-formats { margin: 6px 0 0; text-align: center; font-size: .78rem; color: var(--muted); }
-.amazon-formats a { color: var(--fg); }
-.formats-links { white-space: nowrap; }
+.amazon-formats { margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.amazon-formats a {
+  padding: 5px 4px; border-radius: 8px; border: 1px solid var(--accent); color: var(--accent);
+  font-size: .8rem; font-weight: 600; text-align: center; text-decoration: none;
+}
+.amazon-formats a:hover { background: var(--accent-soft); }
 .card-source { text-align: center; }
 .source-link { display: inline-block; margin-top: 6px; font-size: .8rem; color: var(--muted); }
 .powered { display: flex; align-items: center; gap: 6px; margin: -8px 0 8px; font-size: .8rem; color: var(--muted); }
