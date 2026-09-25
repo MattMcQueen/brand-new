@@ -159,3 +159,22 @@ def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(tmp_path):
     # The floating button replaced the footer's Ko-fi link.
     footer = (tmp_path / "index.html").read_text(encoding="utf-8").split('<footer class="site-footer">')[1]
     assert "Buy me a coffee" not in footer.split("</footer>")[0]
+
+
+def test_books_and_music_have_their_own_pages(tmp_path):
+    releases = sample.releases(TODAY)
+    pages = render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    assert "/books/" in pages and "/music/" in pages
+    books = (tmp_path / "books" / "index.html").read_text(encoding="utf-8")
+    assert '<h1>Books</h1>' in books and 'href="/books/horror/"' in books and "powered by Google" in books
+    assert 'href="/books/" aria-current="page"' in books
+    # every recent book once, even when it's in more than one genre
+    recent_ids = {r.id for r in render.recent([r for r in releases if r.kind == "books"], TODAY).releases}
+    assert books.count('<li class="card">') == len(recent_ids) > 0
+    music = (tmp_path / "music" / "index.html").read_text(encoding="utf-8")
+    assert "powered by Google" not in music and 'href="/music/rock/"' in music
+    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert 'href="/books/" aria-current="true"' in genre and '<a class="kicker" href="/books/">' in genre
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert 'aria-current' not in home.split("</nav>")[0] and '<a class="kind-link" href="/music/">' in home
+    assert f"{config.SITE_URL}/books/</loc>" in (tmp_path / "sitemap.xml").read_text(encoding="utf-8")

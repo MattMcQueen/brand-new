@@ -20,8 +20,8 @@
     <a class="logo" href="/">
       {{- logo_svg|safe }}Brand New</a>
     <nav class="nav" aria-label="Sections">
-      <a href="/#books">Books</a>
-      <a href="/#music">Music</a>
+      <a href="/books/"{% if path.startswith("/books/") %} aria-current="{{ "page" if path == "/books/" else "true" }}"{% endif %}>Books</a>
+      <a href="/music/"{% if path.startswith("/music/") %} aria-current="{{ "page" if path == "/music/" else "true" }}"{% endif %}>Music</a>
       <a href="/about/"{% if path == "/about/" %} aria-current="page"{% endif %}>About</a>
     </nav>
     <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">

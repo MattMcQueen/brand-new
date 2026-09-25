@@ -95,6 +95,9 @@ main { padding-top: 24px; padding-bottom: 48px; min-height: 60vh; }
 h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); margin: 8px 0 16px; }
 h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .kicker { display: block; font: 600 .8rem/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+a.kicker { width: fit-content; text-decoration: none; }
+a.kicker:hover, .kind-link:hover { text-decoration: underline; }
+.kind-link { color: inherit; text-decoration: none; }
 
 /* Home: genre tiles */
 .kind h2 { display: flex; align-items: center; gap: 8px; }

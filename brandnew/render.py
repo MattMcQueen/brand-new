@@ -44,17 +44,29 @@ def _upcoming_key(r: Release):
     return (r.date, -r.popularity, r.title.lower())
 
 
+@dataclass
+class Recent:
+    releases: list[Release]
+    days: int                                  # 7, or 14 when the last week was empty
+
+
+def recent(releases: list[Release], today: date) -> Recent:
+    """What came out in the last week, or the last two weeks if that's empty, most popular first."""
+    for days in (config.PAST_DAYS, config.PAST_FALLBACK_DAYS):
+        past = [r for r in releases if today - timedelta(days=days) <= r.date <= today]
+        if past:
+            break
+    return Recent(sorted(past, key=_past_key), days)
+
+
 def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     mine = [r for r in releases if r.kind == genre.kind and genre.slug in r.genres]
-    past_days = config.PAST_DAYS
-    past = [r for r in mine if today - timedelta(days=past_days) <= r.date <= today]
-    if not past:
-        past_days = config.PAST_FALLBACK_DAYS
-        past = [r for r in mine if today - timedelta(days=past_days) <= r.date <= today]
+    got = recent(mine, today)
+    past, past_days = got.releases, got.days
     upcoming = sorted((r for r in mine if today < r.date <= today + timedelta(days=config.UPCOMING_DAYS)),
                       key=_upcoming_key)
     months = [(format_month(d), list(rs)) for d, rs in groupby(upcoming, key=lambda r: r.date.replace(day=1))]
-    return GenrePage(genre, sorted(past, key=_past_key), past_days, months)
+    return GenrePage(genre, past, past_days, months)
 
 
 def logo_svg() -> str:
@@ -109,6 +121,11 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
         written.append(path)
 
     write("/", "home.html")
+    for kind in ("books", "music"):
+        # every release of the kind appears once, even when it's in several genres
+        unique = list({r.id: r for r in reversed(releases) if r.kind == kind}.values())
+        write(f"/{kind}/", "kind.html", kind=kind, recent=recent(unique, today),
+              pages_of_kind=[pages[g.slug + g.kind] for g in config.genres_of(kind)])
     for p in pages.values():
         siblings = [pages[g.slug + g.kind] for g in config.genres_of(p.genre.kind)]
         write(p.url, "genre.html", page=p, siblings=siblings)

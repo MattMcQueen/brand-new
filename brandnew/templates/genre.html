@@ -11,7 +11,7 @@
   {% endfor %}
   </ul>
 </nav>
-<h1><span class="kicker">{{ kind_names[page.genre.kind] }}</span>{{ page.genre.name }}</h1>
+<h1><a class="kicker" href="/{{ page.genre.kind }}/">{{ kind_names[page.genre.kind] }}</a>{{ page.genre.name }}</h1>
 {% if page.genre.kind == "books" %}
 <p class="powered">Book data <img src="https://books.google.com/googlebooks/images/poweredby.png" alt="powered by Google" height="18" loading="lazy" referrerpolicy="no-referrer"></p>
 {% endif %}
