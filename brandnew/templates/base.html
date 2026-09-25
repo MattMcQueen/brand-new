@@ -7,6 +7,8 @@
 <title>{% block title %}{{ config.SITE_NAME }}: new and upcoming books and music{% endblock %}</title>
 <meta name="description" content="{% block description %}New and upcoming books and albums, by genre: what came out this week and what's coming soon.{% endblock %}">
 <link rel="canonical" href="{{ config.SITE_URL }}{{ path }}">
+{# Proves ownership to Bing Webmaster Tools; keep it, or the site becomes unverified. #}
+<meta name="msvalidate.01" content="43876E90C7D03768DD371FD4A72AF166">
 {# Link previews (WhatsApp, Facebook, Bluesky, LinkedIn...). Source image: design/share-image.html #}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ config.SITE_NAME }}">
