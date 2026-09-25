@@ -28,7 +28,7 @@ GOOGLE_BOOKS_KEY_FILE=path/to/key.txt .venv/Scripts/python -m brandnew fetch
 ```
 
 - `GOOGLE_BOOKS_KEY` (or `GOOGLE_BOOKS_KEY_FILE`, a file containing it): Google Books API key. Never commit it.
-- `AMAZON_TAG`: the Associates tracking tag added to Amazon links.
+- `AMAZON_TAG`: overrides the Associates tracking tag in `brandnew/config.py` (matsbasblo-21).
 - The first music fetch takes about 10 minutes (MusicBrainz allows 1 request a second); artist genres are then cached in `.cache/`.
 
 ## Data sources

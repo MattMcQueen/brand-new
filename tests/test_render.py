@@ -50,3 +50,20 @@ def test_build_site(tmp_path):
         assert "ListenBrainz" in text and "Google Books" in text and "Cover Art Archive" in text
         assert "05:31 BST" in text
     assert (tmp_path / "data" / "releases.json").exists()
+
+
+def test_cards_have_the_same_parts_so_rows_line_up(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    html = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    cards = re.findall(r'<li class="card">(.*?)</li>', html, re.S)
+    parts = [re.findall(r'^  <\w+ class="([\w-]+)', c, re.M) for c in cards]
+    assert cards and all(p == ["cover", "card-title", "card-by", "card-date", "card-extra", "card-buy", "card-source"]
+                         for p in parts)
+
+
+def test_default_tag_is_used(tmp_path, monkeypatch):
+    from brandnew.__main__ import main
+    monkeypatch.delenv("AMAZON_TAG", raising=False)
+    assert main(["build", "--sample", "--out", str(tmp_path)]) == 0
+    html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert "tag=matsbasblo-21" in html

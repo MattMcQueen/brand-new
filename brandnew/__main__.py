@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import pipeline, render, sample, store
+from . import config, pipeline, render, sample, store
 from .sources import google_books, listenbrainz
 from .ukdates import now_uk
 
@@ -50,9 +50,7 @@ def cmd_build(args) -> int:
             print(f"No data file at {args.data}. Use --sample to build with made-up data.", file=sys.stderr)
             return 1
         generated, releases = store.load(args.data)
-    tag = os.environ.get("AMAZON_TAG") or None
-    if not tag:
-        print("Note: AMAZON_TAG is not set, so Amazon links have no tracking tag.", file=sys.stderr)
+    tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
     pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
     print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/", file=sys.stderr)
     return 0

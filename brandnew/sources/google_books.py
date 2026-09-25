@@ -33,6 +33,39 @@ BLOCKED_TITLES = re.compile(
     re.I)
 
 
+# Publisher marketing tacked onto titles: "Dark Waters: Now a major ITV Drama", "Die Famous: A Novel".
+MARKETING = re.compile(r"now a (major|netflix)|brand[- ]new|gripping|bestsell|must[- ]read|unputdownable|addictive|"
+                       r"page[- ]turner|perfect for fans|twisty|heart-?pounding|nail-?biting", re.I)
+PLAIN_SUBTITLES = {"a novel", "a thriller", "a mystery", "a romance", "a novella", "novel"}
+IMPRINT = re.compile(r"\s*\((mills & boon|harlequin)[^)]*\)", re.I)
+
+
+# UK publishers and imprints. Their ISBNs are the UK editions, so Amazon UK has a page for them.
+# Anything else (often a US edition with a different ISBN) gets a search link instead of a
+# direct one, because a direct link to an ISBN Amazon UK doesn't stock is a dead end.
+UK_PUBLISHERS = re.compile(
+    r"\buk\b|hachette uk|little, brown book group|hodder|headline|orion|quercus|john murray|sphere|"
+    r"pan macmillan|bloomsbury|faber|canongate|bonnier|zaffre|boldwood|bookouture|embla|atlantic books|"
+    r"raven books|transworld|cornerstone|michael joseph|mills & boon|one more chapter|head of zeus|"
+    r"titan books|gollancz|jo fletcher|profile books|serpent's tail|sceptre|mantle|picador|"
+    r"simon & schuster uk|harpercollins uk|harper ?collins publishers ltd", re.I)
+
+
+def is_uk_edition(publisher: str | None) -> bool:
+    return bool(publisher and UK_PUBLISHERS.search(publisher))
+
+
+def clean_title(title: str, subtitle: str | None = None) -> str:
+    t = IMPRINT.sub("", title).strip()
+    main, colon, rest = t.partition(":")
+    if colon and (MARKETING.search(rest) or rest.strip().lower() in PLAIN_SUBTITLES):
+        t = main.strip()
+    if subtitle and len(subtitle) < 60 and ":" not in t and not MARKETING.search(subtitle) \
+            and subtitle.strip().lower() not in PLAIN_SUBTITLES:
+        t = f"{t}: {subtitle.strip()}"
+    return t
+
+
 def api_key() -> str:
     """From GOOGLE_BOOKS_KEY, or the file named by GOOGLE_BOOKS_KEY_FILE. Never printed."""
     key = os.environ.get("GOOGLE_BOOKS_KEY", "").strip()
@@ -75,12 +108,13 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
     isbn = next((i["identifier"] for i in v.get("industryIdentifiers", []) if i.get("type") == "ISBN_13"), None)
     if not isbn or not v.get("title") or not v.get("authors"):
         return None
-    title = v["title"] + (f": {v['subtitle']}" if v.get("subtitle") and len(v["subtitle"]) < 60 else "")
+    title = clean_title(v["title"], v.get("subtitle"))
     by = ", ".join(v["authors"][:2])
     img = (v.get("imageLinks") or {}).get("thumbnail")
     cover = img.replace("http://", "https://").replace("&edge=curl", "") if img else None
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
-                   amazon_url=amazon.book_url(isbn, title, by), genres=[genre], cover=cover,
+                   amazon_url=amazon.book_url(isbn, title, by, direct=is_uk_edition(v.get("publisher"))),
+                   genres=[genre], cover=cover,
                    publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
 
 

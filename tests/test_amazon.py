@@ -18,6 +18,10 @@ def test_book_url_direct_and_search():
     assert amazon.book_url(None, "Big Book", "Ann Author") == "https://www.amazon.co.uk/s?k=Big+Book+Ann+Author&i=stripbooks"
 
 
+def test_book_url_search_when_not_direct():
+    assert amazon.book_url("9780306406157", "Big Book: A Novel", "Ann Author, Bo B", direct=False) ==         "https://www.amazon.co.uk/s?k=Big+Book+Ann+Author&i=stripbooks"
+
+
 def test_music_url():
     assert amazon.music_url("Blur", "The Ballad") == "https://www.amazon.co.uk/s?k=Blur+The+Ballad&i=popular"
 

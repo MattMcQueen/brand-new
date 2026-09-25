@@ -7,7 +7,7 @@ from brandnew.sources import google_books as gb
 TODAY = date(2026, 9, 25)
 
 
-def item(title="A Novel", days=0, isbn="9780306406157", cats=("Fiction",), publisher="Big House", date_str=None,
+def item(title="A Novel", days=0, isbn="9780306406157", cats=("Fiction",), publisher="HarperCollins UK", date_str=None,
          lang="en", thumb="http://books.google.com/x?id=1&edge=curl", authors=("Ann Author",)):
     ids = [{"type": "ISBN_13", "identifier": isbn}] if isbn else []
     v = {"title": title, "authors": list(authors), "publisher": publisher, "language": lang,
@@ -42,6 +42,28 @@ def test_to_release():
 ])
 def test_rejects(kw):
     assert gb.to_release(item(**kw), "horror", TODAY) is None
+
+
+@pytest.mark.parametrize("title, subtitle, expected", [
+    ("Dark Waters: Now a major ITV Drama 'THE DARK'", None, "Dark Waters"),
+    ("Die Famous: A Novel", None, "Die Famous"),
+    ("Die Famous", "A Novel", "Die Famous"),
+    ("Suffer In Silence: the brand new gripping Katie Maguire", None, "Suffer In Silence"),
+    ("K-9 In Pursuit (K-9 Avalanche Rescue, Book 4) (Mills & Boon Heroes)", None,
+     "K-9 In Pursuit (K-9 Avalanche Rescue, Book 4)"),
+    ("King Zero: The New James Bond Novel", None, "King Zero: The New James Bond Novel"),
+    ("Zone", "Book Three of the Meiji Trilogy", "Zone: Book Three of the Meiji Trilogy"),
+])
+def test_clean_title(title, subtitle, expected):
+    assert gb.clean_title(title, subtitle) == expected
+
+
+def test_amazon_link_direct_only_for_uk_publishers():
+    uk = gb.to_release(item("Night: A Ghost Story", publisher="Hachette UK"), "horror", TODAY)
+    us = gb.to_release(item("Night: A Ghost Story", publisher="Ballantine Books", authors=("Ann Author", "Bo B")),
+                       "horror", TODAY)
+    assert uk.amazon_url == "https://www.amazon.co.uk/dp/0306406152"
+    assert us.amazon_url == "https://www.amazon.co.uk/s?k=Night+Ann+Author&i=stripbooks"
 
 
 def test_no_categories_is_allowed():

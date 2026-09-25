@@ -7,7 +7,8 @@ BLOG_URL = "https://www.matt-rarely-writes.co.uk"
 KOFI_URL = "https://ko-fi.com/mattrarelywrites"
 USER_AGENT = f"BrandNew/0.1 ( {SITE_URL} )"
 
-AMAZON_DISCLOSURE = "As an Amazon Associate I earn from qualifying purchases."
+AMAZON_TAG = "matsbasblo-21"  # Associates UK tracking ID (public: it's in every link). AMAZON_TAG env var overrides.
+AMAZON_DISCLOSURE ="As an Amazon Associate I earn from qualifying purchases."
 AFFILIATE_REL = "sponsored nofollow noopener"
 
 PAST_DAYS = 7            # "Out this week"

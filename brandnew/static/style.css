@@ -125,32 +125,46 @@ h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .month { font-size: 1.05rem; color: var(--muted); margin: 24px 0 10px; font-family: system-ui, sans-serif; font-weight: 600; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px 12px; }
 @media (max-width: 400px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* A card's seven parts (cover, title, author, date, extras, button, source link) share row
+   heights with the other cards in the same row, so everything lines up across the row. */
 .card {
   display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line);
-  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow);
+  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); font-size: .9rem;
 }
+@supports (grid-template-rows: subgrid) {
+  .card { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
+}
+.card > :not(.cover) { padding: 0 10px; }
+.card-title { padding-top: 10px !important; }
+.card-source { padding-bottom: 10px !important; }
+.card-buy { margin-top: auto; }  /* keeps the button at the bottom without subgrid too */
 .cover { position: relative; aspect-ratio: 2 / 3; background: var(--accent-soft); display: grid; place-items: center; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cover-fallback { color: var(--accent); opacity: .6; }
 .cover-fallback .icon { width: 40px; height: 40px; }
-.card-body { display: flex; flex-direction: column; gap: 2px; padding: 10px; flex: 1; font-size: .9rem; }
-.card-title { font-size: 1rem; margin: 0; overflow-wrap: anywhere; }
+.card-title {
+  font-size: 1rem; margin: 0; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+}
 .card-by, .card-date, .card-note, .card-tags { margin: 0; }
-.card-by { color: var(--fg); }
-.card-date { color: var(--muted); font-size: .85rem; }
+.card-by {
+  color: var(--fg); margin-top: 2px;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.card-date { color: var(--muted); font-size: .85rem; margin-top: 2px; }
 .card-note { font-style: italic; }
 .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .tag { font-size: .72rem; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .buy {
-  margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 8px 10px; border-radius: 8px; background: var(--accent); color: var(--accent-fg);
   font-weight: 600; text-decoration: none; font-size: .88rem;
 }
-.card-body > .buy { margin-top: 10px; }
 .buy:hover { filter: brightness(1.08); }
 .buy .icon { width: 16px; height: 16px; }
-.source-link { margin-top: 6px; text-align: center; font-size: .8rem; color: var(--muted); }
+.card-source { text-align: center; }
+.source-link { display: inline-block; margin-top: 6px; font-size: .8rem; color: var(--muted); }
 .powered { display: flex; align-items: center; gap: 6px; margin: -8px 0 8px; font-size: .8rem; color: var(--muted); }
 /* Google's logo is dark text on transparent, so it sits on a light chip in dark mode. */
 .powered img { height: 18px; width: auto; background: #fff; border-radius: 4px; padding: 2px 4px; box-sizing: content-box; }
