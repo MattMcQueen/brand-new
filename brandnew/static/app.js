@@ -96,6 +96,13 @@
   if (!isNaN(generated) && Date.now() - generated > limit) note.hidden = false;
 })();
 
+// Genre chips: on phones they're one row that scrolls sideways, so start with the current genre in view.
+(function () {
+  var row = document.querySelector(".chips"), current = row && row.querySelector("[aria-current]");
+  if (row && current && row.scrollWidth > row.clientWidth)
+    row.scrollLeft = current.getBoundingClientRect().left - row.getBoundingClientRect().left - 16;
+})();
+
 // A cover that fails to load (the image hosts sometimes have errors) is removed, rather than
 // leaving a broken-image box: a genre tile's fan just has one fewer, and a card shows its made-up cover.
 (function () {
