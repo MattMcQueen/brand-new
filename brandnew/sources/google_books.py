@@ -22,16 +22,19 @@ PAGE_SIZE = 40
 
 # Noise: academic and reference publishers, study guides, notebooks and the like.
 BLOCKED_PUBLISHERS = re.compile(
-    r"university press|springer|routledge|taylor & francis|palgrave|bloomsbury academic|wiley|elsevier|"
+    r"university press|springer|routledge|taylor & francis|palgrave|bloomsbury academic|elsevier|"
     r"de gruyter|brill|edward elgar|peter lang|mcfarland|lexington|rowman|cambridge scholars|igi global|"
     r"crc press|emerald|sage publications|independently published|createspace", re.I)
 BLOCKED_TITLES = re.compile(
-    r"\b(proceedings|handbook|companion to|study guide|summary of|analysis of|workbook|notebook|journal|"
+    r"\b(proceedings|lecture notes|handbook|companion to|study guide|summary of|analysis of|workbook|notebook|journal|"
     r"colou?ring book|planner|sparknotes|cliffsnotes|anthology of criticism|box set)\b"
     # monthly ebook bundles such as "Medical Romance December 2026 Books 1-4"
     r"|\bbooks \d+\s*[-–]\s*\d+\b"
     r"|\b(january|february|march|april|may|june|july|august|september|october|november|december) 20\d\d\b",
     re.I)
+# Tech & AI: exam and certification guides swamp the computing subjects.
+CERTIFICATION = re.compile(r"\b(exam|certification|certified|practice tests?|cram|comptia|cissp|ccna|az-\d{3})\b",
+                           re.I)
 
 
 # Publisher marketing tacked onto titles: "Dark Waters: Now a major ITV Drama", "Die Famous: A Novel".
@@ -107,15 +110,16 @@ VARIATIONS = ("", "novel", "paperback", "hardcover", "ebook", "book 1", "series"
 MAX_CALLS = 400
 
 
-def query_plan(terms: tuple[str, ...], today: date) -> list[tuple[str, str]]:
-    """(variation, query) pairs, most useful first."""
+def query_plan(terms: tuple[str, ...], today: date,
+               variations: tuple[str, ...] = VARIATIONS) -> list[tuple[str, str]]:
+    """(variation, query) pairs, most useful first. `terms` are full subjects, e.g. "fiction / horror"."""
     start, end = fetch_window(today)
     years = sorted({start.year, end.year})
-    return [(v, f'subject:"fiction / {t}" {y} {v}'.strip()) for y in years for v in VARIATIONS for t in terms]
+    return [(v, f'subject:"{t}" {y} {v}'.strip()) for y in years for v in variations for t in terms]
 
 
-def queries(terms: tuple[str, ...], today: date) -> list[str]:
-    return [q for _, q in query_plan(terms, today)]
+def queries(terms: tuple[str, ...], today: date, variations: tuple[str, ...] = VARIATIONS) -> list[str]:
+    return [q for _, q in query_plan(terms, today, variations)]
 
 
 def exact_date(s: str | None) -> date | None:
@@ -125,17 +129,21 @@ def exact_date(s: str | None) -> date | None:
         return None
 
 
-def is_noise(v: dict) -> bool:
-    if BLOCKED_PUBLISHERS.search(v.get("publisher") or "") or BLOCKED_TITLES.search(v.get("title") or ""):
+def is_noise(v: dict, category: str = "fiction") -> bool:
+    """`category`: a word the book's Google categories must include ("fiction", "computers")."""
+    title = v.get("title") or ""
+    if BLOCKED_PUBLISHERS.search(v.get("publisher") or "") or BLOCKED_TITLES.search(title):
+        return True
+    if category != "fiction" and CERTIFICATION.search(f"{title} {v.get('subtitle') or ''}"):
         return True
     cats = v.get("categories") or []
-    return bool(cats) and not any("fiction" in c.lower() for c in cats)
+    return bool(cats) and not any(category in c.lower() for c in cats)
 
 
-def to_release(item: dict, genre: str, today: date) -> Release | None:
+def to_release(item: dict, genre: str, today: date, category: str = "fiction") -> Release | None:
     v = item.get("volumeInfo") or {}
     d = exact_date(v.get("publishedDate"))
-    if not d or not in_fetch_window(d, today) or v.get("language", "en") != "en" or is_noise(v):
+    if not d or not in_fetch_window(d, today) or v.get("language", "en") != "en" or is_noise(v, category):
         return None
     isbn = next((i["identifier"] for i in v.get("industryIdentifiers", []) if i.get("type") == "ISBN_13"), None)
     if not isbn or not v.get("title") or not v.get("authors"):
@@ -187,7 +195,7 @@ def fetch(today: date, get_json=None) -> list[Release]:
     for g in config.BOOK_GENRES:
         n = used = 0
         try:
-            for variation, q in query_plan(g.terms, today):
+            for variation, q in query_plan(g.terms, today, g.variations or VARIATIONS):
                 for page in range(PAGES):
                     if used == budget:
                         break
@@ -199,7 +207,7 @@ def fetch(today: date, get_json=None) -> list[Release]:
                     yields[variation][0] += 1
                     items = (get_json(url) or {}).get("items", [])
                     for it in items:
-                        r = to_release(it, g.slug, today)
+                        r = to_release(it, g.slug, today, g.category)
                         if r:
                             found.append(r)
                             n += 1
