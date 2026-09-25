@@ -1,7 +1,7 @@
 # Brand New
 
 New and upcoming book and music releases by genre, with links to Amazon UK.
-To be hosted at https://brandnew.matt-rarely-writes.co.uk.
+To be hosted at https://brand-new.matt-rarely-writes.co.uk.
 
 Status: in development. Nothing is deployed yet.
 
