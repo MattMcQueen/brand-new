@@ -232,11 +232,19 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .support-btn.is-tucked:focus-visible { transform: none; opacity: 1; pointer-events: auto; }  /* keyboard users can still reach it */
 .support-panel {
   position: fixed; inset: auto auto 72px 16px; margin: 0; padding: 0;
-  width: min(340px, calc(100vw - 32px)); height: min(600px, calc(100dvh - 96px));
+  width: min(340px, calc(100vw - 32px));
   flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
   background: var(--surface); color: var(--fg); box-shadow: 0 8px 30px rgb(0 0 0 / .3);
+  /* Opens and closes like Ko-fi's own widget (as on the blog): it's pinned just above the button,
+     so growing its height sweeps it up the page. Closed: height .3s and fade .3s. */
+  height: 0; opacity: 0;
+  transition: height .3s ease, opacity .3s linear, overlay .3s allow-discrete, display .3s allow-discrete;
 }
-.support-panel:popover-open { display: flex; }
+.support-panel:popover-open {
+  display: flex; height: min(600px, calc(100dvh - 96px)); opacity: 1;
+  transition: height .5s ease, opacity .3s linear, overlay .5s allow-discrete, display .5s allow-discrete;
+}
+@starting-style { .support-panel:popover-open { height: 0; opacity: 0; } }
 .support-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--line); }
 .support-head p { margin: 0; }
 .support-frame { flex: 1; background: #fff; }  /* Ko-fi's form is light */
@@ -244,7 +252,8 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .support-foot { margin: 0; padding: 8px 14px; font-size: .8rem; text-align: center; border-top: 1px solid var(--line); }
 .updated { font-size: .85rem; color: var(--muted); }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* The Support me panel still sweeps open, to match the blog's Ko-fi widget: one short movement the visitor asked for. */
+@media (prefers-reduced-motion: reduce) { :not(.support-panel) { transition: none !important; } }
 
 /* "Running late" notice (see app.js) */
 .stale {
