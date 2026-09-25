@@ -28,8 +28,22 @@ def book_url(isbn13: str | None, title: str, author: str, direct: bool = True) -
     if direct and isbn10:
         return f"{BASE}/dp/{isbn10}"
     if not direct and title:
-        return search_url(f"{title.split(':')[0].strip()} {author.split(',')[0].strip()}", "stripbooks")
+        return search_url(_short_query(title, author), "stripbooks")
     return search_url(isbn13 or f"{title} {author}", "stripbooks")
+
+
+def _short_query(title: str, author: str) -> str:
+    return f"{title.split(':')[0].strip()} {author.split(',')[0].strip()}"
+
+
+def kindle_url(title: str, author: str) -> str:
+    """A Kindle Store search: the ebook has its own ASIN, so we can't link to it directly."""
+    return search_url(_short_query(title, author), "digital-text")
+
+
+def audible_url(title: str, author: str) -> str:
+    """An Audible search on Amazon UK. Not every book has an audiobook, so this is always a search."""
+    return search_url(_short_query(title, author), "audible")
 
 
 def music_url(artist: str, album: str) -> str:
