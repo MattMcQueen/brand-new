@@ -386,3 +386,12 @@ def test_streaming_links_for_upcoming_albums_come_after_record_shops(tmp_path):
     assert headings == {"Out Today": ["Listen", "Record shops"], "Next Week": ["Record shops", "Listen"]}
     assert "Out on Fri 2 Oct 2026. Until then you may only find singles, or a pre-save." in popovers["Next Week"]
     assert "Out on" not in popovers["Out Today"]
+
+
+def test_kindle_and_audible_links_stay_together(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    lines = re.findall(r'<p class="amazon-formats">(.*?)</p>', html, re.S)
+    assert lines and all(re.fullmatch(r'Also on Amazon: <span class="formats-links"><a [^>]+>Kindle</a> ·\s*'
+                                      r'<a [^>]+>Audible</a></span>', l, re.S) for l in lines)
+    assert ".formats-links { white-space: nowrap; }" in (tmp_path / "static" / "style.css").read_text(encoding="utf-8")

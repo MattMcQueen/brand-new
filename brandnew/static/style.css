@@ -256,6 +256,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .shops-note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); }
 .amazon-formats { margin: 6px 0 0; text-align: center; font-size: .78rem; color: var(--muted); }
 .amazon-formats a { color: var(--fg); }
+.formats-links { white-space: nowrap; }
 .card-source { text-align: center; }
 .source-link { display: inline-block; margin-top: 6px; font-size: .8rem; color: var(--muted); }
 .powered { display: flex; align-items: center; gap: 6px; margin: -8px 0 8px; font-size: .8rem; color: var(--muted); }

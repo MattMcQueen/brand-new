@@ -53,11 +53,12 @@
        title="Find it on Amazon UK" aria-label="{{ r.title }} by {{ r.by }} on Amazon UK (opens in a new tab)">
       {{- icon("external") }}<span>on Amazon UK</span></a>
     {% if r.kind == "books" %}
-    <p class="amazon-formats">Also on Amazon:
-      <a href="{{ amazon_kindle(r)|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
+    {# The two links stay together, so a narrow card breaks the line after "Also on Amazon:" #}
+    <p class="amazon-formats">Also on Amazon: <span class="formats-links">
+      {#- #}<a href="{{ amazon_kindle(r)|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
          title="Search for the Kindle ebook" aria-label="Search Amazon UK for the Kindle ebook of {{ r.title }} (opens in a new tab)">Kindle</a> ·
       <a href="{{ amazon_audible(r)|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
-         title="Search for the Audible audiobook" aria-label="Search Amazon UK for the Audible audiobook of {{ r.title }} (opens in a new tab)">Audible</a></p>
+         title="Search for the Audible audiobook" aria-label="Search Amazon UK for the Audible audiobook of {{ r.title }} (opens in a new tab)">Audible</a></span></p>
     {% endif %}
     {% set pid = "shops-" ~ next_id() %}
     <button class="more-shops" type="button" popovertarget="{{ pid }}"
