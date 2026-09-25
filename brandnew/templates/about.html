@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 {% block title %}About | {{ config.SITE_NAME }}{% endblock %}
-{% block description %}What Brand New is, how its affiliate links work, and where its data comes from.{% endblock %}
+{% block description %}What Brand New is, what it can and can't tell you, how its affiliate links work, and where its data comes from.{% endblock %}
 {% block main %}
 <article class="prose">
   <h1>About Brand New</h1>
   <p>Brand New lists the books and albums that came out in the last week and those due over the next three months, by genre. The lists are rebuilt automatically every morning, UK time.</p>
   <p>It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
+
+  <h2 id="limitations">What this site does, and what it doesn't</h2>
+  <p>Brand New is for finding out what's new and what's coming soon, and for giving you a quick way to look for it at different shops. That's all it tries to do.</p>
+  <ul>
+    <li><strong>It isn't a price comparison site.</strong> It doesn't show prices, and it can't tell you where something is cheapest.</li>
+    <li><strong>It can't tell you who sells it or has it in stock.</strong> The site doesn't check any shop, so it doesn't know whether a shop sells a particular book or album, or has it in stock. Every link is a starting point, not a promise.</li>
+    <li><strong>Most links open a search.</strong> Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site for the title and author or artist. Those searches may find other editions, or nothing at all. For UK editions of books, the Amazon and bookshop links go straight to the book's page, but even then the shop may not have it.</li>
+    <li><strong>Not every book comes in every format.</strong> Many books never come out as ebooks or audiobooks, or they arrive later, and the site can't tell which.</li>
+    <li><strong>Dates change, and the lists aren't complete.</strong> Release dates move, especially for books, and the lists are built from public data that misses some releases. Check the date with the shop before you order.</li>
+  </ul>
 
   <h2 id="affiliate-links">How the Amazon links work</h2>
   <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
@@ -32,7 +42,6 @@
     <li>Album covers: the <a href="https://coverartarchive.org">Cover Art Archive</a>.</li>
     <li>Books and book covers: the <a href="https://books.google.co.uk">Google Books</a> API.</li>
   </ul>
-  <p>Release dates can change and the lists aren't complete, especially for books. Check the date on Amazon before you order. Book links go straight to the book when it's a UK edition; otherwise they open a search on that shop's site. Album links always open a search.</p>
 
   <h2>Privacy</h2>
   <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies.</p>
