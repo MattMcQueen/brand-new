@@ -107,7 +107,7 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
         shutil.rmtree(child) if child.is_dir() else child.unlink()
     env = _env(amazon_tag)
     pages = {g.slug + g.kind: genre_page(g, releases, today) for g in config.ALL_GENRES}
-    common = dict(updated=format_updated(generated), pages=pages,
+    common = dict(updated=format_updated(generated), generated_iso=generated.isoformat(), pages=pages,
                   book_pages=[pages[g.slug + g.kind] for g in config.BOOK_GENRES],
                   music_pages=[pages[g.slug + g.kind] for g in config.MUSIC_GENRES])
     written = []
