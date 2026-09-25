@@ -26,10 +26,11 @@
   <p>You never have to use them. If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" links are not affiliate links, and nobody pays to appear on this site.</p>
 
   <h2 id="other-shops">Other shops</h2>
-  <p>Not everyone wants to use Amazon, so every book and album also has an "Other shops" button.</p>
+  <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button, and every album a "Listen & buy" button.</p>
   <ul>
     <li>Books: {% for s in bookshops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</li>
     <li>Ebooks and audiobooks: {% for s in digital_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</li>
+    <li>Streaming: albums have a "Listen & buy" button with {% for s in streaming %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search for the album, which may find nothing until it's released.</li>
     <li>Albums: {% for s in record_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
   </ul>
   <p>These are <strong>not affiliate links</strong>: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>

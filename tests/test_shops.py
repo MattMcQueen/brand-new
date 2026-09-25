@@ -32,4 +32,12 @@ def test_groups_for_books_and_albums():
     books = shops.groups_for("books", "9781405975735", "T", "A", uk_edition=True)
     assert [g.heading for g in books] == ["Bookshops", "Ebooks & audiobooks"]
     assert books[1].note and all(formats for _, _, formats in books[1].links)
-    assert [g.heading for g in shops.groups_for("music", "mbid", "T", "A", uk_edition=False)] == ["Record shops"]
+    music = shops.groups_for("music", "mbid", "T", "A", uk_edition=False)
+    assert [g.heading for g in music] == ["Listen", "Record shops"] and music[0].note
+
+
+def test_listen_links_search_artist_and_title():
+    links = dict(shops.listen_links("Neil Young & The Chrome Hearts", "Second Song"))
+    assert list(links) == ["Spotify", "Apple Music", "YouTube Music", "Amazon Music", "Deezer", "Bandcamp"]
+    assert links["Spotify"] == "https://open.spotify.com/search/Neil%20Young%20%26%20The%20Chrome%20Hearts%20Second%20Song/albums"
+    assert links["Bandcamp"] == "https://bandcamp.com/search?q=Neil+Young+%26+The+Chrome+Hearts+Second+Song&item_type=a"

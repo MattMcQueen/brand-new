@@ -100,7 +100,8 @@ def _env(amazon_tag: str | None) -> Environment:
                        other_shops=lambda r: shops.groups_for(r.kind, r.id, r.title, r.by, r.uk_edition),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
-                       bookshops=shops.BOOKSHOPS, digital_shops=shops.DIGITAL_SHOPS, record_shops=shops.RECORD_SHOPS, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
+                       bookshops=shops.BOOKSHOPS, digital_shops=shops.DIGITAL_SHOPS, record_shops=shops.RECORD_SHOPS,
+                       streaming=shops.STREAMING, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env
 
 
