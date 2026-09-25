@@ -123,6 +123,7 @@ main { padding-top: 32px; padding-bottom: 64px; min-height: 60vh; }
 .hero { padding: 40px 24px; border-radius: 28px; background: var(--panel); }
 .hero h1 { font-size: clamp(2.25rem, 6vw, 62px); letter-spacing: -.01em; }
 .hero p { max-width: 620px; }
+.hero h1, .hero p { text-wrap: balance; }  /* even lines, no one-word last line */
 @media (min-width: 640px) { .hero { padding: 48px 56px; } }
 h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; margin: 8px 0 16px; }
 h2 { font-size: clamp(1.625rem, 3.5vw, 2.25rem); margin: 48px 0 16px; }
