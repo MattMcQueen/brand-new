@@ -7,8 +7,14 @@ Status: in development. Nothing is deployed yet.
 
 ## How it works
 
-A Python script fetches releases, renders plain HTML pages into `dist/`, and (later) a scheduled
-GitHub Action rebuilds it every morning and deploys it to Azure Static Web Apps.
+A Python script fetches releases and renders plain HTML pages into `dist/`. The
+[Build site](.github/workflows/build.yml) GitHub Action runs the tests on every pull request and
+rebuilds the site every morning (about 05:17 UK time in summer, 04:17 in winter) and whenever `main`
+changes. Each run's data and MusicBrainz genre lookups are kept in the Actions cache for the next run.
+The built site is attached to each run for a week. Deploying to Azure Static Web Apps is off until the
+repository variable `DEPLOY_ENABLED` is `true` and the `AZURE_STATIC_WEB_APPS_API_TOKEN` secret exists.
+
+Secrets: `GOOGLE_BOOKS_KEY` (GitHub Actions secret).
 
 ## Picks of the week
 

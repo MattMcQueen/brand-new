@@ -52,6 +52,11 @@ def cmd_build(args) -> int:
             print(f"No data file at {args.data}. Use --sample to build with made-up data.", file=sys.stderr)
             return 1
         generated, releases = store.load(args.data)
+        for kind in ("books", "music"):
+            n = sum(r.kind == kind for r in releases)
+            if n < args.min_releases:
+                print(f"Only {n} {kind} releases (need {args.min_releases}); not building.", file=sys.stderr)
+                return 1
     tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
     chosen = picks.resolve(picks.load(args.picks), releases, now.date(), lookup=not args.sample)
     # A pick with a genre that isn't in the day's data also goes on that genre page
@@ -84,6 +89,8 @@ def main(argv=None) -> int:
     b.add_argument("--out", type=Path, default=DEFAULT_OUT)
     b.add_argument("--sample", action="store_true", help="use made-up releases")
     b.add_argument("--picks", type=Path, default=DEFAULT_PICKS)
+    b.add_argument("--min-releases", type=int, default=0,
+                   help="refuse to build if books or music has fewer releases than this")
     b.set_defaults(func=cmd_build)
     s = sub.add_parser("serve", help="preview dist/ locally")
     s.add_argument("--out", type=Path, default=DEFAULT_OUT)
