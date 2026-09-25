@@ -34,6 +34,10 @@
     <a class="buy" href="{{ r.amazon_url|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
        title="Find it on Amazon UK" aria-label="{{ r.title }} by {{ r.by }} on Amazon UK (opens in a new tab)">
       {{- icon("external") }}<span>on Amazon UK</span></a>
+    {% if r.info_url and r.source == "google-books" %}
+    <a class="source-link" href="{{ r.info_url }}" rel="noopener" target="_blank"
+       title="See it on Google Books" aria-label="{{ r.title }} on Google Books (opens in a new tab)">More on Google Books</a>
+    {% endif %}
   </div>
 </li>
 {%- endmacro %}

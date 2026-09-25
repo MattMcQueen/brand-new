@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from . import pipeline, render, sample, store
-from .sources import listenbrainz
+from .sources import google_books, listenbrainz
 from .ukdates import now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
@@ -25,7 +25,8 @@ def cmd_fetch(args) -> int:
             print(f"Previous run: {len(previous)} releases from {args.previous}", file=sys.stderr)
         except Exception as e:  # noqa: BLE001 - first run, or the site isn't live yet
             print(f"No previous data ({e}); carrying on without a fallback.", file=sys.stderr)
-    sources = {"music": lambda: listenbrainz.fetch(today, GENRE_CACHE)}
+    sources = {"books": lambda: google_books.fetch(today),
+               "music": lambda: listenbrainz.fetch(today, GENRE_CACHE)}
     releases = []
     for kind in ("books", "music"):
         if kind in sources and kind in args.only:

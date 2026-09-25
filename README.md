@@ -20,7 +20,16 @@ python -m venv .venv
 .venv/Scripts/python -m pytest
 ```
 
-Set `AMAZON_TAG` to add the Associates tracking tag to Amazon links.
+Real data (`fetch` writes `.cache/releases.json`, which `build` then uses):
+
+```bash
+GOOGLE_BOOKS_KEY_FILE=path/to/key.txt .venv/Scripts/python -m brandnew fetch
+.venv/Scripts/python -m brandnew build
+```
+
+- `GOOGLE_BOOKS_KEY` (or `GOOGLE_BOOKS_KEY_FILE`, a file containing it): Google Books API key. Never commit it.
+- `AMAZON_TAG`: the Associates tracking tag added to Amazon links.
+- The first music fetch takes about 10 minutes (MusicBrainz allows 1 request a second); artist genres are then cached in `.cache/`.
 
 ## Data sources
 
