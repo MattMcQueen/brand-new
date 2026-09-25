@@ -189,6 +189,7 @@ def test_link_previews(tmp_path):
     assert re.search(r'<meta property="og:description" content="New horror books: \d+ out (this week|in the last '
                      r'two weeks) and \d+ due over the next three months\.">', genre)
     assert '<meta name="twitter:card" content="summary_large_image">' in genre
+    assert '<meta name="msvalidate.01" content="43876E90C7D03768DD371FD4A72AF166">' in genre
     assert (tmp_path / "static" / "share.png").read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
     assert render.lower_name("Tech & AI") == "tech & AI"
 
