@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card %}
+{% from "_macros.html" import card with context %}
 {% set noun = "books" if page.genre.kind == "books" else "albums" %}
 {% block title %}New {{ page.genre.name|lower }} {{ noun }}: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
 {% block description %}{{ page.genre.name }} {{ noun }} released in the last week and due over the next three months.{% endblock %}
