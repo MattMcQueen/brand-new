@@ -125,7 +125,8 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
                    amazon_url=amazon.book_url(isbn, title, by, direct=is_uk_edition(v.get("publisher"))),
                    genres=[genre], cover=cover,
-                   publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
+                   publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"),
+                   uk_edition=is_uk_edition(v.get("publisher")))
 
 
 def _dedupe_key(r: Release) -> tuple[str, str]:
