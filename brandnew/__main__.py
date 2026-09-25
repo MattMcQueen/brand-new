@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import config, pipeline, render, sample, store
+from . import config, hosting, pipeline, render, sample, store
 from .sources import google_books, listenbrainz
 from .ukdates import now_uk
 
@@ -64,8 +64,30 @@ def cmd_build(args) -> int:
     return 0
 
 
+class PreviewHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves dist/ like Azure will: the same headers, and the site's own 404 page."""
+
+    def end_headers(self):
+        for name, value in hosting.headers_for(self.path.split("?")[0]).items():
+            if name != "Strict-Transport-Security":  # HTTPS only; this preview is plain HTTP
+                self.send_header(name, value)
+        super().end_headers()
+
+    def send_error(self, code, message=None, explain=None):
+        page = Path(self.directory) / "404.html"
+        if code == 404 and page.exists():
+            body = page.read_bytes()
+            self.send_response(404)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().send_error(code, message, explain)
+
+
 def cmd_serve(args) -> int:
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(args.out))
+    handler = functools.partial(PreviewHandler, directory=str(args.out))
     with http.server.ThreadingHTTPServer(("127.0.0.1", args.port), handler) as httpd:
         print(f"Serving {args.out}/ at http://localhost:{args.port}/ (Ctrl+C to stop)", file=sys.stderr)
         httpd.serve_forever()
