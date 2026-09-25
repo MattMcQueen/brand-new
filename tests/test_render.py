@@ -203,6 +203,16 @@ def test_running_late_notice_is_in_every_page_but_hidden(tmp_path):
         assert "last updated on Friday 25 September 2026 at 09:49 BST. The daily update is running late" in html
 
 
+def test_icons_are_defined_once_and_support_is_a_landmark(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert html.count('<symbol id="icon-external"') == 1                     # drawn once...
+    assert html.count('<use href="#icon-external"/>') > 5                     # ...used many times
+    assert not re.search(r'<svg class="icon"[^>]*>(?:(?!</svg>).)*<path', html, re.S)  # icons only <use>
+    assert re.search(r'<aside class="support" aria-label="Support Brand New">\s*(\{#.*?#\}\s*)?<a class="support-btn"',
+                     html, re.S)
+
+
 def test_home_screen_icons_and_manifest(tmp_path):
     import json
     render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)

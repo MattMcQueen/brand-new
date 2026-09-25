@@ -1,4 +1,4 @@
-{% from "_macros.html" import icon %}
+{% from "_macros.html" import icon, icon_sprite %}
 <!doctype html>
 <html lang="en-GB">
 <head>
@@ -30,6 +30,7 @@
 <script src="{{ asset('app.js') }}" defer></script>
 </head>
 <body>
+{{ icon_sprite() }}
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap bar">
@@ -63,6 +64,7 @@
     <p class="updated">Updated {{ updated }}.</p>
   </div>
 </footer>
+<aside class="support" aria-label="Support Brand New">
 {# Opens Ko-fi's donation panel in the page (app.js). Nothing from Ko-fi loads until it's clicked;
    without JavaScript it's just a link to the Ko-fi page. #}
 <a class="support-btn" href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" data-kofi-panel
@@ -77,5 +79,6 @@
   <div class="support-frame"></div>
   <p class="support-foot"><a href="{{ config.KOFI_URL }}" rel="noopener" target="_blank">Open ko-fi.com/{{ config.KOFI_URL.rsplit("/", 1)[1] }} in a new tab</a></p>
 </div>
+</aside>
 </body>
 </html>
