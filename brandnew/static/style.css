@@ -160,8 +160,55 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .cover { position: relative; aspect-ratio: 2 / 3; background: var(--accent-soft); display: grid; place-items: center; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.cover-fallback { color: var(--accent); opacity: .6; }
-.cover-fallback .icon { width: 40px; height: 40px; }
+/* Made-up covers, for releases with no cover (or one that won't load): a classic paperback for
+   books, a bold printed sleeve for albums. The colours come from the release (hue-0..7). */
+.hue-0 { --mc1: #c2410c; --mc2: #f59e0b; }
+.hue-1 { --mc1: #0f766e; --mc2: #5eead4; }
+.hue-2 { --mc1: #6d28d9; --mc2: #c4b5fd; }
+.hue-3 { --mc1: #be123c; --mc2: #fda4af; }
+.hue-4 { --mc1: #1d4ed8; --mc2: #93c5fd; }
+.hue-5 { --mc1: #4d7c0f; --mc2: #bef264; }
+.hue-6 { --mc1: #a16207; --mc2: #fde68a; }
+.hue-7 { --mc1: #334155; --mc2: #94a3b8; }
+/* The block of pages behind a book's cover: only seen when the book turns (hover). The far edge
+   is a little shorter, for perspective. */
+.cover-books::before {
+  content: ""; position: absolute; z-index: 0; top: 4%; bottom: 4%; right: 2%; width: 24%; opacity: 0;
+  clip-path: polygon(0 0, 100% 5%, 100% 95%, 0 100%);
+  border-radius: 0 3px 3px 0; box-shadow: inset -2px 0 4px rgb(0 0 0 / .25);
+  background: repeating-linear-gradient(to right, #f6f1e7 0 1.5px, #cfc6b4 1.5px 2.5px);
+  transition: opacity .2s ease;
+}
+.made-cover {
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--mc1); transition: transform .35s ease;
+}
+.cover:has(img) .made-cover { visibility: hidden; }  /* the real cover is loading or shown */
+.mc-title, .mc-by { overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.made-cover-books .mc-band {
+  flex: 0 0 17%; display: grid; place-items: center; color: rgb(255 255 255 / .9);
+  font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+}
+.mc-emblem { width: 20px; height: 20px; border-radius: 50%; background: var(--mc2); box-shadow: 0 0 0 2px var(--mc1), 0 0 0 4px rgb(255 255 255 / .85); }
+.mc-panel {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 14% 10%;
+  background: #f7f1e6; color: #1c1a17; text-align: center; border-block: 3px solid var(--mc2);
+}
+.made-cover-books .mc-title { font: 700 1rem/1.2 ui-serif, Georgia, serif; -webkit-line-clamp: 4; line-clamp: 4; }
+.made-cover-books .mc-by { color: var(--mc1); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; -webkit-line-clamp: 2; line-clamp: 2; }
+.made-cover-music {
+  justify-content: flex-end; align-items: flex-start; gap: 5px; padding: 10%;
+  background: repeating-radial-gradient(circle at 80% 12%, var(--mc2) 0 9px, var(--mc1) 9px 18px);
+}
+.made-cover-music .mc-label {  /* the "record label", over the middle of the rings; like the paperbacks' publisher band */
+  position: absolute; top: 8%; right: 8%; padding: 2px 8px; border-radius: 999px; background: #fff; color: var(--mc1);
+  font-size: .6rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 1px 4px rgb(0 0 0 / .25);
+}
+.made-cover-music .mc-title {
+  max-width: 100%; padding: 3px 7px; background: #111; color: #fff;
+  font-size: .9rem; font-weight: 800; line-height: 1.15; text-transform: uppercase; -webkit-line-clamp: 3; line-clamp: 3;
+}
+.made-cover-music .mc-by { max-width: 100%; padding: 2px 7px; background: #fff; color: #111; font-size: .72rem; font-weight: 700; -webkit-line-clamp: 1; line-clamp: 1; }
 .card-title {
   font-size: 1rem; margin: 0; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
@@ -275,7 +322,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .cover img { z-index: 1; transition: transform .35s ease; }
 .vinyl {
-  position: absolute; top: 6%; left: 6%; width: 88%; aspect-ratio: 1; border-radius: 50%; z-index: 0;
+  position: absolute; top: 12%; left: 12%; width: 76%; aspect-ratio: 1; border-radius: 50%; z-index: 0;  /* a little smaller than the sleeve when it shrinks aside */
   /* label and spindle hole, then a sheen, over the grooves. The light rim keeps it visible on dark backgrounds. */
   background: radial-gradient(circle, #eee 0 3%, var(--accent) 3.5% 17%, #111 17.5% 19%, transparent 19.5%),
               conic-gradient(from 20deg, transparent 0 8%, rgb(255 255 255 / .16) 13%, transparent 19% 58%,
@@ -285,10 +332,13 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   transition: transform .35s ease;
 }
 @media (hover: hover) {
-  .card:hover .cover-music img { transform: translateX(-18%) scale(.84); }
-  .card:hover .vinyl { transform: translateX(24%) rotate(60deg); }
-  .cover-books { perspective: 700px; }
-  .card:hover .cover-books img { transform: rotateY(-14deg) scale(1.03); }
+  .card:hover .cover-music img, .card:hover .cover-music .made-cover { transform: translateX(-16%) scale(.8); }
+  .card:hover .vinyl { transform: translateX(26%) rotate(60deg); }
+  /* Books turn on the spine, showing the edges of their pages */
+  .cover-books { perspective: 600px; }
+  .cover-books img, .cover-books .made-cover { transform-origin: left center; }
+  .card:hover .cover-books img, .card:hover .cover-books .made-cover { transform: rotateY(28deg); box-shadow: 4px 0 10px rgb(0 0 0 / .3); }
+  .card:hover .cover-books::before { opacity: 1; }
 }
 .surprise-btn {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 16px; border-radius: 999px;
@@ -324,7 +374,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 /* Short movements the visitor sets off themselves (opening Support me, hovering over a cover, "Surprise me")
    still play, as the blog's Ko-fi widget does; everything else keeps still. */
 @media (prefers-reduced-motion: reduce) {
-  :not(.support-panel, .cover img, .vinyl, .surprise-btn .icon) { transition: none !important; }
+  :not(.support-panel, .cover img, .made-cover, .vinyl, .surprise-btn .icon) { transition: none !important; }
 }
 
 /* "Running late" notice (see app.js) */

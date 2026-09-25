@@ -324,3 +324,20 @@ def test_surprise_me_is_on_the_home_and_kind_pages(tmp_path):
         assert '<div class="surprise" id="surprise" popover' in html
     assert "data-surprise" not in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert (tmp_path / "data" / "releases.json").exists()  # what the button picks from
+
+
+def test_every_card_has_a_made_up_cover_to_fall_back_on(tmp_path):
+    no_cover = book(0, title="No Cover </b>")
+    render.build([no_cover, book(1, title="Has Cover")], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    horror = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert horror.count('class="made-cover made-cover-books hue-') == horror.count('<li class="card"') == 2
+    assert '<span class="mc-title">No Cover &lt;/b&gt;</span>' in horror  # escaped like any other text
+    assert render.cover_hue(no_cover) == render.cover_hue(book(5, title="No Cover </b>"))  # same release, same colours
+    assert len({render.cover_hue(book(0, title=str(i))) for i in range(50)}) == render.COVER_HUES
+
+
+def test_made_up_album_sleeves_carry_the_site_name(tmp_path):
+    album = Release(kind="music", id="m1", title="Album", by="A", date=TODAY, source="test", amazon_url="", genres=["rock"])
+    render.build([album], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    rock = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert '<span class="mc-label">Brand New</span>' in rock and 'class="vinyl"' in rock  # the record's there without a cover too
