@@ -46,7 +46,8 @@
 {# Opens Ko-fi's donation panel in the page (app.js). Nothing from Ko-fi loads until it's clicked;
    without JavaScript it's just a link to the Ko-fi page. #}
 <a class="support-btn" href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" data-kofi-panel
-   title="Support Brand New on Ko-fi" aria-label="Support me on Ko-fi">{{ icon("cup") }}<span>Support me</span></a>
+   title="Support Brand New on Ko-fi" aria-label="Support me on Ko-fi">
+  <img src="{{ asset('kofi-logo.png') }}" width="39" height="31" alt=""><span>Support me</span></a>
 <div class="support-panel" id="kofi-panel" popover data-src="{{ config.KOFI_URL }}/?hidefeed=true&amp;widget=true&amp;embed=true">
   <div class="support-head">
     <p><strong>Support Brand New</strong></p>
