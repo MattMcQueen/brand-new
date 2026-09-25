@@ -11,6 +11,8 @@ from .sources import google_books, listenbrainz
 from .ukdates import now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
+# Exit code for "the data is too thin to build from": the workflow treats it as a warning, not a failure.
+TOO_FEW_RELEASES = 3
 DEFAULT_OUT = Path("dist")
 GENRE_CACHE = Path(".cache/artist-genres.json")
 
@@ -54,7 +56,7 @@ def cmd_build(args) -> int:
             n = sum(r.kind == kind for r in releases)
             if n < args.min_releases:
                 print(f"Only {n} {kind} releases (need {args.min_releases}); not building.", file=sys.stderr)
-                return 1
+                return TOO_FEW_RELEASES
     tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
     pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
     print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/",
