@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% from "_macros.html" import card with context %}
 {% set noun = "books" if page.genre.kind == "books" else "albums" %}
-{% block title %}New {{ page.genre.name|lower }} {{ noun }}: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
-{% block description %}{{ page.genre.name }} {{ noun }} released in the last week and due over the next three months.{% endblock %}
+{% block title %}New {{ page.genre.name|lower_name }} {{ noun }}: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
+{% block description %}New {{ page.genre.name|lower_name }} {{ noun }}: {{ page.past|length }} out {{ "this week" if page.past_days == config.PAST_DAYS else "in the last two weeks" }} and {{ page.count - page.past|length }} due over the next three months.{% endblock %}
 {% block main %}
 <nav class="chips" aria-label="{{ kind_names[page.genre.kind] }} genres">
   <ul role="list">

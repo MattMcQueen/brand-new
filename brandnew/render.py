@@ -70,6 +70,11 @@ def genre_page(genre: Genre, releases: list[Release], today: date) -> GenrePage:
     return GenrePage(genre, past, past_days, months)
 
 
+def lower_name(name: str) -> str:
+    """Lower-case a genre name for use mid-sentence, keeping acronyms: "Tech & AI" -> "tech & AI"."""
+    return " ".join(w if len(w) > 1 and w.isupper() else w.lower() for w in name.split())
+
+
 def logo_svg() -> str:
     """The favicon, inline in the header, so the two can never drift apart."""
     svg = (STATIC / "favicon.svg").read_text(encoding="utf-8").strip()
@@ -88,6 +93,7 @@ def _env(amazon_tag: str | None) -> Environment:
                       autoescape=select_autoescape(["html", "xml"]),
                       trim_blocks=True, lstrip_blocks=True)
     env.filters["uk_date"] = format_date
+    env.filters["lower_name"] = lower_name
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
     env.globals.update(config=config, genre_url=genre_url, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
