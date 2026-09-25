@@ -202,6 +202,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .cover { position: relative; aspect-ratio: 2 / 3; background: var(--panel); display: grid; place-items: center; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cover img.is-retrying { visibility: hidden; }  /* the made-up cover shows while it tries again (early.js) */
 /* Made-up covers, for releases with no cover (or one that won't load): a classic paperback for
    books, a bold printed sleeve for albums. The colours come from the release (hue-0..7). */
 .hue-0 { --mc1: #c2410c; --mc2: #f59e0b; }
