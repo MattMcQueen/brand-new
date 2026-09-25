@@ -150,6 +150,10 @@ h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .card-body > .buy { margin-top: 10px; }
 .buy:hover { filter: brightness(1.08); }
 .buy .icon { width: 16px; height: 16px; }
+.source-link { margin-top: 6px; text-align: center; font-size: .8rem; color: var(--muted); }
+.powered { display: flex; align-items: center; gap: 6px; margin: -8px 0 8px; font-size: .8rem; color: var(--muted); }
+/* Google's logo is dark text on transparent, so it sits on a light chip in dark mode. */
+.powered img { height: 18px; width: auto; background: #fff; border-radius: 4px; padding: 2px 4px; box-sizing: content-box; }
 .empty { color: var(--muted); font-style: italic; }
 
 /* About */

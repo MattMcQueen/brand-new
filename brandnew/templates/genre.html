@@ -12,6 +12,9 @@
   </ul>
 </nav>
 <h1><span class="kicker">{{ kind_names[page.genre.kind] }}</span>{{ page.genre.name }}</h1>
+{% if page.genre.kind == "books" %}
+<p class="powered">Book data <img src="https://books.google.com/googlebooks/images/poweredby.png" alt="powered by Google" height="18" loading="lazy" referrerpolicy="no-referrer"></p>
+{% endif %}
 
 <section aria-labelledby="past-h">
   <h2 id="past-h">{{ "Out this week" if page.past_days == config.PAST_DAYS else "Out in the last two weeks" }}</h2>

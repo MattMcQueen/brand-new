@@ -17,6 +17,7 @@ class Release:
     cover: str | None = None
     cover_2x: str | None = None
     publisher: str = ""
+    info_url: str | None = None  # the source's own page for this release (Google Books requires one)
     popularity: int = 0       # ListenBrainz listener count (music only)
     note: str = ""            # my comment, for picks
 
