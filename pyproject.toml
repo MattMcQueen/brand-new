@@ -1,0 +1,26 @@
+[project]
+name = "brandnew"
+version = "0.1.0"
+description = "Static site of new and upcoming book and music releases by genre"
+requires-python = ">=3.12"
+dependencies = [
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "tzdata>=2024.1",  # Windows has no system time zone database; needed for Europe/London
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["brandnew*"]
+
+[tool.setuptools.package-data]
+brandnew = ["templates/*.html", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

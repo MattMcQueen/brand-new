@@ -1,0 +1,43 @@
+{% from "_macros.html" import icon %}
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ config.SITE_NAME }}: new and upcoming books and music{% endblock %}</title>
+<meta name="description" content="{% block description %}New and upcoming books and albums, by genre: what came out this week and what's coming soon.{% endblock %}">
+<link rel="canonical" href="{{ config.SITE_URL }}{{ path }}">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="/"><span class="logo-mark" aria-hidden="true">N</span>Brand New</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="/#books">Books</a>
+      <a href="/#music">Music</a>
+      <a href="/about/"{% if path == "/about/" %} aria-current="page"{% endif %}>About</a>
+    </nav>
+    <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+      <span class="when-light">{{ icon("moon") }}</span><span class="when-dark">{{ icon("sun") }}</span>
+    </button>
+  </div>
+</header>
+<main id="main" class="wrap">
+{% block main %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="disclosure">{{ config.AMAZON_DISCLOSURE }}</p>
+    <p><a class="kofi" href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" title="Support the site on Ko-fi" aria-label="Buy me a coffee on Ko-fi (opens in a new tab)">{{ icon("cup") }}<span>Buy me a coffee on Ko-fi</span></a></p>
+    <p class="credits">Music data from <a href="https://listenbrainz.org">ListenBrainz</a> and <a href="https://musicbrainz.org">MusicBrainz</a>, album covers from the <a href="https://coverartarchive.org">Cover Art Archive</a>. Book data from <a href="https://books.google.co.uk">Google Books</a>. <a href="/about/">More about this site</a>.</p>
+    <p class="updated">Updated {{ updated }}.</p>
+  </div>
+</footer>
+</body>
+</html>

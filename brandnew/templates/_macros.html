@@ -1,0 +1,39 @@
+{# Inline SVG icons (drawn for this site) and shared snippets. #}
+{% macro icon(name) -%}
+<svg class="icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+{%- if name == "sun" -%}
+<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+{%- elif name == "moon" -%}
+<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>
+{%- elif name == "external" -%}
+<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>
+{%- elif name == "cup" -%}
+<path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2"/>
+{%- elif name == "books" -%}
+<path d="M2 5h6a4 4 0 0 1 4 4v11a3 3 0 0 0-3-3H2zM22 5h-6a4 4 0 0 0-4 4v11a3 3 0 0 1 3-3h7z"/>
+{%- elif name == "music" -%}
+<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+{%- endif -%}
+</svg>
+{%- endmacro %}
+
+{% macro card(r) -%}
+<li class="card">
+  <div class="cover cover-{{ r.kind }}">
+    <span class="cover-fallback">{{ icon(r.kind) }}</span>
+    {% if r.cover %}
+    <img src="{{ r.cover }}"{% if r.cover_2x %} srcset="{{ r.cover }} 1x, {{ r.cover_2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">{{ r.title }}</h3>
+    <p class="card-by">{{ r.by }}</p>
+    <p class="card-date"><time datetime="{{ r.date.isoformat() }}">{{ r.date|uk_date }}</time></p>
+    {% if r.note %}<p class="card-note">{{ r.note }}</p>{% endif %}
+    {% if r.tags %}<p class="card-tags">{% for t in r.tags[:3] %}<span class="tag">{{ t }}</span>{% endfor %}</p>{% endif %}
+    <a class="buy" href="{{ r.amazon_url|amazon }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
+       title="Find it on Amazon UK" aria-label="{{ r.title }} by {{ r.by }} on Amazon UK (opens in a new tab)">
+      {{- icon("external") }}<span>on Amazon UK</span></a>
+  </div>
+</li>
+{%- endmacro %}

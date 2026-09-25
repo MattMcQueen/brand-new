@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% set noun = "books" if page.genre.kind == "books" else "albums" %}
+{% block title %}New {{ page.genre.name|lower }} {{ noun }}: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
+{% block description %}{{ page.genre.name }} {{ noun }} released in the last week and due over the next three months.{% endblock %}
+{% block main %}
+<nav class="chips" aria-label="{{ kind_names[page.genre.kind] }} genres">
+  <ul role="list">
+  {% for s in siblings %}
+    <li><a href="{{ s.url }}"{% if s.genre.slug == page.genre.slug %} aria-current="page"{% endif %}>{{ s.genre.name }}</a></li>
+  {% endfor %}
+  </ul>
+</nav>
+<h1><span class="kicker">{{ kind_names[page.genre.kind] }}</span>{{ page.genre.name }}</h1>
+
+<section aria-labelledby="past-h">
+  <h2 id="past-h">{{ "Out this week" if page.past_days == config.PAST_DAYS else "Out in the last two weeks" }}</h2>
+  {% if page.past %}
+  <ul class="grid" role="list">{% for r in page.past %}{{ card(r) }}{% endfor %}</ul>
+  {% else %}
+  <p class="empty">Nothing we know of from the last two weeks. Have a look at what's coming soon.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="soon-h">
+  <h2 id="soon-h">Coming soon</h2>
+  {% for month, rs in page.upcoming %}
+  <h3 class="month">{{ month }}</h3>
+  <ul class="grid" role="list">{% for r in rs %}{{ card(r) }}{% endfor %}</ul>
+  {% else %}
+  <p class="empty">Nothing announced yet for the next three months.</p>
+  {% endfor %}
+</section>
+{% endblock %}
