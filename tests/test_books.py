@@ -92,3 +92,51 @@ def test_key_from_file(tmp_path, monkeypatch):
     f.write_text(" secret \n", encoding="utf-8")
     monkeypatch.setenv("GOOGLE_BOOKS_KEY_FILE", str(f))
     assert gb.api_key() == "secret"
+
+
+class FakeApi:
+    """Stands in for net.get_json: one fresh in-window book per call, or an error on chosen calls."""
+    def __init__(self, fail_on=(), error=None):
+        self.calls, self.fail_on, self.error = 0, set(fail_on), error
+
+    def __call__(self, url):
+        self.calls += 1
+        if self.calls in self.fail_on:
+            raise self.error
+        isbn = f"978{self.calls:010d}"
+        return {"items": [item(f"Book {self.calls}", isbn=isbn, days=1)]}
+
+
+@pytest.fixture
+def key(monkeypatch):
+    monkeypatch.setenv("GOOGLE_BOOKS_KEY", "k")
+
+
+def test_fetch_stays_within_budget(key):
+    api = FakeApi()
+    books = gb.fetch(TODAY, get_json=api)
+    assert api.calls <= gb.MAX_CALLS
+    share = gb.MAX_CALLS // len(gb.config.BOOK_GENRES)
+    assert api.calls == sum(min(share, len(gb.queries(g.terms, TODAY)) * gb.PAGES) for g in gb.config.BOOK_GENRES)
+    assert {g for b in books for g in b.genres} == {g.slug for g in gb.config.BOOK_GENRES}
+
+
+def test_quota_exhausted_keeps_what_was_found(key):
+    api = FakeApi(fail_on=range(100, 10_000), error=gb.net.QuotaExhausted("daily quota used up"))
+    books = gb.fetch(TODAY, get_json=api)
+    assert len(books) == 99
+    assert api.calls == 100  # stopped at the first quota error, no retries or later genres
+    assert {g for b in books for g in b.genres} == {"crime-thrillers", "sf-fantasy"}
+
+
+def test_quota_exhausted_with_nothing_found_raises(key):
+    api = FakeApi(fail_on=range(1, 10_000), error=gb.net.QuotaExhausted("daily quota used up"))
+    with pytest.raises(gb.net.QuotaExhausted):
+        gb.fetch(TODAY, get_json=api)
+
+
+def test_failed_genre_is_skipped(key):
+    api = FakeApi(fail_on={1}, error=RuntimeError("boom"))
+    books = gb.fetch(TODAY, get_json=api)
+    genres = {g for b in books for g in b.genres}
+    assert "crime-thrillers" not in genres and "literary-fiction" in genres

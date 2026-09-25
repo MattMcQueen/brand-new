@@ -80,10 +80,20 @@ def api_key() -> str:
 VARIATIONS = ("", "novel", "paperback", "hardcover", "ebook", "book 1", "series")
 
 
-def queries(terms: tuple[str, ...], today: date) -> list[str]:
+# Google Books allows 1,000 calls a day per project and won't raise it. Each run stays well
+# under that so a second run (or a local test) the same day still has room.
+MAX_CALLS = 400
+
+
+def query_plan(terms: tuple[str, ...], today: date) -> list[tuple[str, str]]:
+    """(variation, query) pairs, most useful first."""
     start, end = fetch_window(today)
     years = sorted({start.year, end.year})
-    return [f'subject:"fiction / {t}" {y} {v}'.strip() for y in years for v in VARIATIONS for t in terms]
+    return [(v, f'subject:"fiction / {t}" {y} {v}'.strip()) for y in years for v in VARIATIONS for t in terms]
+
+
+def queries(terms: tuple[str, ...], today: date) -> list[str]:
+    return [q for _, q in query_plan(terms, today)]
 
 
 def exact_date(s: str | None) -> date | None:
@@ -139,25 +149,55 @@ def merge(found: list[Release]) -> list[Release]:
     return list(best.values())
 
 
-def fetch(today: date) -> list[Release]:
+def fetch(today: date, get_json=None) -> list[Release]:
+    """Each genre gets an equal share of MAX_CALLS. A genre that fails is left empty (the pipeline
+    keeps yesterday's books for it); if the daily quota runs out, what was found so far is kept."""
+    get_json = get_json or net.get_json
     key = api_key()
-    found = []
+    budget = MAX_CALLS // len(config.BOOK_GENRES)
+    found: list[Release] = []
+    seen: set[str] = set()
+    yields: dict[str, list[int]] = {v: [0, 0] for v in VARIATIONS}  # variation -> [calls, new books]
+    failed = 0
+    calls = 0
     for g in config.BOOK_GENRES:
-        n = 0
-        for q in queries(g.terms, today):
-            for page in range(PAGES):
-                url = API + "?" + urlencode({"q": q, "orderBy": "newest", "langRestrict": "en", "printType": "books",
-                                             "maxResults": PAGE_SIZE, "startIndex": page * PAGE_SIZE,
-                                             "country": "GB", "key": key})
-                items = (net.get_json(url) or {}).get("items", [])
-                for it in items:
-                    r = to_release(it, g.slug, today)
-                    if r:
-                        found.append(r)
-                        n += 1
-                if not items:  # short pages happen mid-way, so only stop on an empty one
-                    break
-        print(f"  Google Books {g.slug}: {n} matches", file=sys.stderr)
+        n = used = 0
+        try:
+            for variation, q in query_plan(g.terms, today):
+                for page in range(PAGES):
+                    if used == budget:
+                        break
+                    url = API + "?" + urlencode({"q": q, "orderBy": "newest", "langRestrict": "en",
+                                                 "printType": "books", "maxResults": PAGE_SIZE,
+                                                 "startIndex": page * PAGE_SIZE, "country": "GB", "key": key})
+                    used += 1
+                    calls += 1
+                    yields[variation][0] += 1
+                    items = (get_json(url) or {}).get("items", [])
+                    for it in items:
+                        r = to_release(it, g.slug, today)
+                        if r:
+                            found.append(r)
+                            n += 1
+                            if r.id not in seen:
+                                seen.add(r.id)
+                                yields[variation][1] += 1
+                    if not items:  # short pages happen mid-way, so only stop on an empty one
+                        break
+        except net.QuotaExhausted as e:
+            print(f"! Google Books {g.slug}: {e}; stopping with what we have", file=sys.stderr)
+            if not found:
+                raise
+            break
+        except RuntimeError as e:
+            failed += 1
+            print(f"! Google Books {g.slug}: {e}; skipping this genre", file=sys.stderr)
+            continue
+        print(f"  Google Books {g.slug}: {n} matches from {used} calls", file=sys.stderr)
+    if failed == len(config.BOOK_GENRES):
+        raise RuntimeError("every Google Books genre failed")
     books = merge(found)
-    print(f"  Google Books: {len(books)} books after merging editions", file=sys.stderr)
+    print(f"  Google Books: {len(books)} books after merging editions, {calls} calls", file=sys.stderr)
+    print("  new books per variation: " + ", ".join(
+        f"{v or '(none)'} {new}/{c} calls" for v, (c, new) in yields.items() if c), file=sys.stderr)
     return books
