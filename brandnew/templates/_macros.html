@@ -78,3 +78,19 @@
   </div>
 </li>
 {%- endmacro %}
+
+{# A kind's genre tiles, with a heading that links to the kind's own page. #}
+{% macro tiles(kind, pages, heading) -%}
+<section class="kind" id="{{ kind }}" aria-labelledby="{{ kind }}-h">
+  <h2 id="{{ kind }}-h">{{ icon(kind) }} {% if path != "/" ~ kind ~ "/" %}<a class="kind-link" href="/{{ kind }}/">{{ heading }}</a>{% else %}{{ heading }}{% endif %}</h2>
+  <ul class="tiles" role="list">
+  {% for p in pages %}
+    <li><a class="tile" href="{{ p.url }}">
+      <span class="tile-name">{{ p.genre.name }}</span>
+      {% if p.genre.blurb %}<span class="tile-blurb">{{ p.genre.blurb }}</span>{% endif %}
+      <span class="tile-count">{{ p.past|length }} just out · {{ p.count - p.past|length }} coming soon</span>
+    </a></li>
+  {% endfor %}
+  </ul>
+</section>
+{%- endmacro %}
