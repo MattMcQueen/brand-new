@@ -22,3 +22,29 @@
   media.addEventListener("change", label);
   label();
 })();
+
+// Ko-fi: the "Support me" button (and the end-of-page link) open Ko-fi's donation form in a
+// panel. The form is only created on the first click, so nothing from Ko-fi loads for anyone
+// who doesn't ask for it. Without popover support the links simply open Ko-fi in a new tab.
+(function () {
+  var panel = document.getElementById("kofi-panel");
+  if (!panel || typeof panel.showPopover !== "function") return;
+  var frameBox = panel.querySelector(".support-frame");
+
+  function load() {
+    if (frameBox.firstChild) return;
+    var frame = document.createElement("iframe");
+    frame.src = panel.dataset.src;
+    frame.title = "Support Brand New on Ko-fi";
+    frame.loading = "eager";
+    frameBox.appendChild(frame);
+  }
+  document.querySelectorAll("[data-kofi-panel]").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (panel.matches(":popover-open")) { panel.hidePopover(); return; }
+      load();
+      panel.showPopover();
+    });
+  });
+})();
