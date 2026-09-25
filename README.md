@@ -50,6 +50,11 @@ docker compose down       # stop and remove
 
 After rebuilding, just refresh the page: `dist/` is mounted, not copied.
 
+The Docker preview doesn't send the live site's security headers. `brandnew serve` (port 8000) does:
+it applies the headers and 404 page from `dist/staticwebapp.config.json`, which `build` writes from
+`brandnew/hosting.py`, so it's the one to use when checking anything the Content Security Policy
+might block.
+
 ## Data sources
 
 - Music: [ListenBrainz](https://listenbrainz.org) and [MusicBrainz](https://musicbrainz.org) (CC0),

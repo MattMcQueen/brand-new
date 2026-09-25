@@ -1,5 +1,6 @@
 """Turns release data into the static site in dist/."""
 import hashlib
+import json
 import shutil
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -8,7 +9,7 @@ from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from . import amazon, config, shops, store
+from . import amazon, config, hosting, shops, store
 from .config import Genre
 from .models import Release
 from .ukdates import format_date, format_month, format_updated
@@ -133,6 +134,7 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
     write("/404.html", "404.html")
 
     shutil.copytree(STATIC, out / "static")
+    (out / "staticwebapp.config.json").write_text(json.dumps(hosting.config(), indent=2) + "\n", encoding="utf-8")
     store.save(out / "data" / "releases.json", releases, generated)
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {config.SITE_URL}/sitemap.xml\n",
                                     encoding="utf-8")

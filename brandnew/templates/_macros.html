@@ -26,7 +26,7 @@
   <div class="cover cover-{{ r.kind }}">
     <span class="cover-fallback">{{ icon(r.kind) }}</span>
     {% if r.cover %}
-    <img src="{{ r.cover }}"{% if r.cover_2x %} srcset="{{ r.cover }} 1x, {{ r.cover_2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">
+    <img src="{{ r.cover }}"{% if r.cover_2x %} srcset="{{ r.cover }} 1x, {{ r.cover_2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     {% endif %}
   </div>
   <h3 class="card-title" title="{{ r.title }}">{{ r.title }}</h3>
