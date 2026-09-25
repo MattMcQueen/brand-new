@@ -8,6 +8,7 @@ from itertools import count, groupby
 from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
+from markupsafe import Markup
 
 from . import amazon, config, hosting, shops, store
 from .config import Genre
@@ -88,12 +89,68 @@ def asset_url(name: str) -> str:
     return f"/static/{name}?v={digest}"
 
 
+# Structured data (schema.org JSON-LD), so search engines can tell what's on each page.
+# Only the breadcrumbs can show up in Google's results; the rest helps it understand the pages.
+
+def json_ld(data) -> Markup:
+    """`data` as JSON for a <script type="application/ld+json">. <, > and & are escaped, so a
+    title containing "</script>" can't end the block early."""
+    text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return Markup(text.replace("<", r"\u003c").replace(">", r"\u003e").replace("&", r"\u0026"))
+
+
+def _breadcrumbs(*trail: tuple[str, str]) -> dict:
+    return {"@context": "https://schema.org", "@type": "BreadcrumbList",
+            "itemListElement": [{"@type": "ListItem", "position": i, "name": name, "item": config.SITE_URL + path}
+                                for i, (name, path) in enumerate(trail, 1)]}
+
+
+def _release_ld(r: Release, genre: Genre) -> dict:
+    item = {"name": r.title, "datePublished": r.date.isoformat(), "genre": genre.name}
+    if r.kind == "books":
+        # Google Books authors are joined with ", " (see sources/google_books.py)
+        item |= {"@type": "Book", "isbn": r.id,
+                 "author": [{"@type": "Person", "name": a} for a in r.by.split(", ") if a]}
+        if r.info_url:
+            item["url"] = r.info_url
+    else:
+        item |= {"@type": "MusicAlbum", "byArtist": {"@type": "MusicGroup", "name": r.by},
+                 "url": f"https://musicbrainz.org/release-group/{r.id}"}
+    if r.cover:
+        item["image"] = r.cover
+    return item
+
+
+def website_ld() -> dict:
+    return {"@context": "https://schema.org", "@type": "WebSite", "name": config.SITE_NAME, "url": config.SITE_URL + "/"}
+
+
+def kind_ld(kind: str) -> list[dict]:
+    return [_breadcrumbs((config.SITE_NAME, "/"), (config.KIND_NAMES[kind], f"/{kind}/"))]
+
+
+def genre_ld(page: GenrePage) -> list[dict]:
+    """The page as a list of the releases on it (in page order), plus its breadcrumbs."""
+    shown = page.past + [r for _, rs in page.upcoming for r in rs]
+    g = page.genre
+    collection = {
+        "@context": "https://schema.org", "@type": "CollectionPage", "url": config.SITE_URL + page.url,
+        "name": f"New {lower_name(g.name)} {'books' if g.kind == 'books' else 'albums'}",
+        "mainEntity": {"@type": "ItemList", "numberOfItems": len(shown),
+                       "itemListElement": [{"@type": "ListItem", "position": i, "item": _release_ld(r, g)}
+                                           for i, r in enumerate(shown, 1)]},
+    }
+    return [collection, _breadcrumbs((config.SITE_NAME, "/"), (config.KIND_NAMES[g.kind], f"/{g.kind}/"),
+                                     (g.name, page.url))]
+
+
 def _env(amazon_tag: str | None) -> Environment:
     env = Environment(loader=PackageLoader("brandnew", "templates"),
                       autoescape=select_autoescape(["html", "xml"]),
                       trim_blocks=True, lstrip_blocks=True)
     env.filters["uk_date"] = format_date
     env.filters["lower_name"] = lower_name
+    env.filters["json_ld"] = json_ld
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
     env.globals.update(config=config, genre_url=genre_url, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
@@ -128,15 +185,15 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
         target.write_text(env.get_template(template).render(path=path, **common, **ctx), encoding="utf-8")
         written.append(path)
 
-    write("/", "home.html")
+    write("/", "home.html", ld=website_ld())
     for kind in ("books", "music"):
         # every release of the kind appears once, even when it's in several genres
         unique = list({r.id: r for r in reversed(releases) if r.kind == kind}.values())
-        write(f"/{kind}/", "kind.html", kind=kind, recent=recent(unique, today),
+        write(f"/{kind}/", "kind.html", kind=kind, ld=kind_ld(kind), recent=recent(unique, today),
               pages_of_kind=[pages[g.slug + g.kind] for g in config.genres_of(kind)])
     for p in pages.values():
         siblings = [pages[g.slug + g.kind] for g in config.genres_of(p.genre.kind)]
-        write(p.url, "genre.html", page=p, siblings=siblings)
+        write(p.url, "genre.html", page=p, siblings=siblings, ld=genre_ld(p))
     write("/about/", "about.html")
     write("/404.html", "404.html")
 
@@ -145,7 +202,11 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
     store.save(out / "data" / "releases.json", releases, generated)
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {config.SITE_URL}/sitemap.xml\n",
                                     encoding="utf-8")
-    urls = "".join(f"<url><loc>{config.SITE_URL}{p}</loc></url>" for p in written if p.endswith("/"))
+    # Every page but About changes with each morning's data. About gets no <lastmod>: search engines
+    # stop trusting the dates if they claim changes that didn't happen.
+    lastmod = f"<lastmod>{generated.date().isoformat()}</lastmod>"
+    urls = "".join(f"<url><loc>{config.SITE_URL}{p}</loc>{'' if p == '/about/' else lastmod}</url>"
+                   for p in written if p.endswith("/"))
     (out / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n', encoding="utf-8")
