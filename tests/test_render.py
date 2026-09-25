@@ -211,3 +211,17 @@ def test_icons_are_defined_once_and_support_is_a_landmark(tmp_path):
     assert not re.search(r'<svg class="icon"[^>]*>(?:(?!</svg>).)*<path', html, re.S)  # icons only <use>
     assert re.search(r'<aside class="support" aria-label="Support Brand New">\s*(\{#.*?#\}\s*)?<a class="support-btn"',
                      html, re.S)
+
+
+def test_home_screen_icons_and_manifest(tmp_path):
+    import json
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'<link rel="apple-touch-icon" href="/static/icon-180\.png\?v=[0-9a-f]{8}">', home)
+    assert re.search(r'<link rel="manifest" href="/static/manifest\.webmanifest\?v=[0-9a-f]{8}">', home)
+    manifest = json.loads((tmp_path / "static" / "manifest.webmanifest").read_text(encoding="utf-8"))
+    assert manifest["short_name"] == "Brand New" and manifest["start_url"] == "/"
+    for icon in manifest["icons"]:  # icon paths are relative to the manifest, in /static/
+        png = (tmp_path / "static" / icon["src"]).read_bytes()
+        size = int(icon["sizes"].split("x")[0])
+        assert png[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(png[16:20], "big") == size
