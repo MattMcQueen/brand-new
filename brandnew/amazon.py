@@ -21,10 +21,14 @@ def search_url(query: str, department: str) -> str:
     return f"{BASE}/s?" + urlencode({"k": query, "i": department})
 
 
-def book_url(isbn13: str | None, title: str, author: str) -> str:
+def book_url(isbn13: str | None, title: str, author: str, direct: bool = True) -> str:
+    """Straight to the book page when we trust Amazon UK has this ISBN (`direct`), otherwise a
+    title + author search, which finds the UK edition or Kindle version and never dead-ends."""
     isbn10 = isbn13_to_10(isbn13)
-    if isbn10:
+    if direct and isbn10:
         return f"{BASE}/dp/{isbn10}"
+    if not direct and title:
+        return search_url(f"{title.split(':')[0].strip()} {author.split(',')[0].strip()}", "stripbooks")
     return search_url(isbn13 or f"{title} {author}", "stripbooks")
 
 

@@ -40,6 +40,21 @@ PLAIN_SUBTITLES = {"a novel", "a thriller", "a mystery", "a romance", "a novella
 IMPRINT = re.compile(r"\s*\((mills & boon|harlequin)[^)]*\)", re.I)
 
 
+# UK publishers and imprints. Their ISBNs are the UK editions, so Amazon UK has a page for them.
+# Anything else (often a US edition with a different ISBN) gets a search link instead of a
+# direct one, because a direct link to an ISBN Amazon UK doesn't stock is a dead end.
+UK_PUBLISHERS = re.compile(
+    r"\buk\b|hachette uk|little, brown book group|hodder|headline|orion|quercus|john murray|sphere|"
+    r"pan macmillan|bloomsbury|faber|canongate|bonnier|zaffre|boldwood|bookouture|embla|atlantic books|"
+    r"raven books|transworld|cornerstone|michael joseph|mills & boon|one more chapter|head of zeus|"
+    r"titan books|gollancz|jo fletcher|profile books|serpent's tail|sceptre|mantle|picador|"
+    r"simon & schuster uk|harpercollins uk|harper ?collins publishers ltd", re.I)
+
+
+def is_uk_edition(publisher: str | None) -> bool:
+    return bool(publisher and UK_PUBLISHERS.search(publisher))
+
+
 def clean_title(title: str, subtitle: str | None = None) -> str:
     t = IMPRINT.sub("", title).strip()
     main, colon, rest = t.partition(":")
@@ -98,7 +113,8 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
     img = (v.get("imageLinks") or {}).get("thumbnail")
     cover = img.replace("http://", "https://").replace("&edge=curl", "") if img else None
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
-                   amazon_url=amazon.book_url(isbn, title, by), genres=[genre], cover=cover,
+                   amazon_url=amazon.book_url(isbn, title, by, direct=is_uk_edition(v.get("publisher"))),
+                   genres=[genre], cover=cover,
                    publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
 
 
