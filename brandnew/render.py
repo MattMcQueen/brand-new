@@ -122,7 +122,7 @@ def logo_svg() -> str:
     """The favicon, inline in the header, so the two can never drift apart."""
     svg = (STATIC / "favicon.svg").read_text(encoding="utf-8").strip()
     return svg.replace('<svg xmlns="http://www.w3.org/2000/svg" ',
-                       '<svg class="logo-mark" width="30" height="30" aria-hidden="true" focusable="false" ', 1)
+                       '<svg class="logo-mark" width="44" height="44" aria-hidden="true" focusable="false" ', 1)
 
 
 def asset_url(name: str) -> str:

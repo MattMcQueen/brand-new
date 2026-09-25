@@ -415,3 +415,13 @@ def test_kindle_and_audible_are_small_buttons_under_the_amazon_one(tmp_path):
 def test_about_styles_dont_leak_onto_the_genre_switcher():
     css = (render.STATIC / "style.css").read_text(encoding="utf-8")
     assert len(re.findall(r"^\.chips \{", css, re.M)) == 1  # the genre switcher's; About uses .shop-chips
+
+
+def test_fonts_the_stylesheet_uses_are_hosted_here_with_their_licences():
+    css = (render.STATIC / "style.css").read_text(encoding="utf-8")
+    files = set(re.findall(r'url\("fonts/([^"]+)"\)', css))
+    assert {"figtree-latin.woff2", "young-serif-latin.woff2", "dm-sans-600-latin.woff2"} <= files
+    fonts = render.STATIC / "fonts"
+    assert all((fonts / f).stat().st_size > 5000 for f in files)
+    for name in ("figtree", "young-serif", "dm-sans"):
+        assert "SIL Open Font License" in (fonts / f"OFL-{name}.txt").read_text(encoding="utf-8")
