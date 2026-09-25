@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}About | {{ config.SITE_NAME }}{% endblock %}
 {% block description %}What Brand New is, what it can and can't tell you, how its affiliate links work, and where its data comes from.{% endblock %}
+{% block kofi_line %}{% endblock %}
 {% block main %}
 <article class="prose">
   <h1>About Brand New</h1>
@@ -44,7 +45,7 @@
   </ul>
 
   <h2>Privacy</h2>
-  <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies.</p>
+  <p>This site doesn't use cookies, analytics or adverts. If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere. Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address. Once you click through to Amazon, Google Books or another shop, that site's own privacy policy applies. The "Support me" button loads Ko-fi's donation form only when you click it; from then on, <a href="https://more.ko-fi.com/privacy">Ko-fi's privacy policy</a> applies to that form.</p>
 
   <p class="updated">Last updated {{ updated }}.</p>
 </article>

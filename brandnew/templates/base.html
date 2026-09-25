@@ -31,6 +31,9 @@
 </header>
 <main id="main" class="wrap">
 {% block main %}{% endblock %}
+{% block kofi_line %}
+<p class="kofi-line">Found something new? <a href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" data-kofi-panel>Buy me a coffee on Ko-fi →</a></p>
+{% endblock %}
 </main>
 <footer class="site-footer">
   <div class="wrap">
@@ -40,5 +43,19 @@
     <p class="updated">Updated {{ updated }}.</p>
   </div>
 </footer>
+{# Opens Ko-fi's donation panel in the page (app.js). Nothing from Ko-fi loads until it's clicked;
+   without JavaScript it's just a link to the Ko-fi page. #}
+<a class="support-btn" href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" data-kofi-panel
+   title="Support Brand New on Ko-fi" aria-label="Support me on Ko-fi">
+  <img src="{{ asset('kofi-logo.png') }}" width="39" height="31" alt=""><span>Support me</span></a>
+<div class="support-panel" id="kofi-panel" popover data-src="{{ config.KOFI_URL }}/?hidefeed=true&amp;widget=true&amp;embed=true">
+  <div class="support-head">
+    <p><strong>Support Brand New</strong></p>
+    <button class="icon-btn" type="button" popovertarget="kofi-panel" popovertargetaction="hide"
+            title="Close" aria-label="Close">{{ icon("close") }}</button>
+  </div>
+  <div class="support-frame"></div>
+  <p class="support-foot"><a href="{{ config.KOFI_URL }}" rel="noopener" target="_blank">Open ko-fi.com/{{ config.KOFI_URL.rsplit("/", 1)[1] }} in a new tab</a></p>
+</div>
 </body>
 </html>

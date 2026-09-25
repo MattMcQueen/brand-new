@@ -206,6 +206,38 @@ h2 { font-size: 1.45rem; margin: 32px 0 12px; }
 .site-footer p { margin: 0 0 10px; }
 .disclosure { color: var(--fg); font-weight: 600; }
 .kofi { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.site-footer { padding-bottom: 80px; }  /* room for the Support me button */
+.kofi-line { margin: 40px 0 8px; text-align: center; color: var(--muted); }
+.kofi-line a { font-weight: 600; }
+
+/* Support me (Ko-fi): bottom-left, like the blog's; the panel opens above it. It matches Ko-fi's
+   own floating button: its colour, DM Sans and the Ko-fi logo, both hosted here, so nothing is
+   fetched from Ko-fi or Google until the panel is opened. */
+@font-face {
+  font-family: "DM Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("fonts/dm-sans-600-latin.woff2") format("woff2");
+}
+.support-btn {
+  position: fixed; left: 16px; bottom: 16px; z-index: 20; display: flex; align-items: center; gap: 8px;
+  height: 46px; padding: 0 20px; border-radius: 100px; background: #a84e2b; color: #fff;
+  font: 600 16px/normal "DM Sans", sans-serif; text-decoration: none;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.support-btn img { width: 39px; height: auto; }
+.support-btn.is-tucked { transform: translateY(calc(100% + 24px)); opacity: 0; pointer-events: none; }
+.support-btn.is-tucked:focus-visible { transform: none; opacity: 1; pointer-events: auto; }  /* keyboard users can still reach it */
+.support-panel {
+  position: fixed; inset: auto auto 72px 16px; margin: 0; padding: 0;
+  width: min(340px, calc(100vw - 32px)); height: min(600px, calc(100dvh - 96px));
+  flex-direction: column; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  background: var(--surface); color: var(--fg); box-shadow: 0 8px 30px rgb(0 0 0 / .3);
+}
+.support-panel:popover-open { display: flex; }
+.support-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--line); }
+.support-head p { margin: 0; }
+.support-frame { flex: 1; background: #fff; }  /* Ko-fi's form is light */
+.support-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.support-foot { margin: 0; padding: 8px 14px; font-size: .8rem; text-align: center; border-top: 1px solid var(--line); }
 .updated { font-size: .85rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

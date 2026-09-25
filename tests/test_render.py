@@ -142,3 +142,15 @@ def test_header_logo_is_the_favicon(tmp_path):
     assert '<svg class="logo-mark"' in home and 'aria-hidden="true"' in home
     assert re.search(r'<link rel="icon" href="/static/favicon\.svg\?v=[0-9a-f]{8}"', home)
     assert render.logo_svg().count("<polygon") == 1  # the sticker outline
+
+
+def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    for page in ("index.html", "books/horror/index.html", "about/index.html"):
+        html = (tmp_path / page).read_text(encoding="utf-8")
+        assert 'class="support-btn"' in html and 'id="kofi-panel" popover' in html
+        assert "<iframe" not in html and "ko-fi.com/cdn" not in html and "storage.ko-fi.com" not in html
+    assert 'class="kofi-line"' in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' not in (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' not in (tmp_path / "404.html").read_text(encoding="utf-8")
