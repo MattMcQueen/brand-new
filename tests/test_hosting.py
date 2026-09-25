@@ -28,3 +28,7 @@ def test_cover_hosts_are_allowed():
     csp = hosting.CSP
     for host in ("https://books.google.com", "https://coverartarchive.org", "https://*.archive.org"):
         assert host in csp
+
+
+def test_files_are_not_redirected_to_slashed_addresses():
+    assert hosting.config()["trailingSlash"] == "auto"

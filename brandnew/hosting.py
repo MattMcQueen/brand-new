@@ -37,7 +37,9 @@ STATIC_CACHE = "public, max-age=31536000, immutable"
 
 def config() -> dict:
     return {
-        "trailingSlash": "always",
+        # "auto": /books/horror -> /books/horror/, but files (style.css, robots.txt) are left alone;
+        # "always" also redirected every file to a slashed address first.
+        "trailingSlash": "auto",
         "routes": [
             {"route": "/static/*", "headers": {"Cache-Control": STATIC_CACHE}},
         ],
