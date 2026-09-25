@@ -5,7 +5,7 @@
 {% block main %}
 <article class="prose">
   <h1>About Brand New</h1>
-  <p>Brand New lists the books and albums that came out in the last week and those due over the next three months, by genre. The lists are rebuilt automatically every morning, UK time.</p>
+  <p>Brand New lists the books and albums that came out in the last week (or the last two weeks, if a genre had a quiet week) and those due over the next three months, by genre. The lists are rebuilt automatically every morning, UK time.</p>
   <p>It's run by Matt, who writes the <a href="{{ config.BLOG_URL }}">Matt Rarely Writes</a> blog. What this site earns helps keep the blog free of ads.</p>
 
   <h2 id="limitations">What this site does, and what it doesn't</h2>
@@ -13,7 +13,7 @@
   <ul>
     <li><strong>It isn't a price comparison site.</strong> It doesn't show prices, and it can't tell you where something is cheapest.</li>
     <li><strong>It can't tell you who sells it or has it in stock.</strong> The site doesn't check any shop, so it doesn't know whether a shop sells a particular book or album, or has it in stock. Every link is a starting point, not a promise.</li>
-    <li><strong>Most links open a search.</strong> Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site for the title and author or artist. Those searches may find other editions, or nothing at all. For UK editions of books, the Amazon and bookshop links go straight to the book's page, but even then the shop may not have it.</li>
+    <li><strong>Most links open a search.</strong> Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site, for the title and author or artist. Those searches may find other editions, or nothing at all. For books that are UK editions, going by the publisher and ISBN, the Amazon, {{ bookshops|selectattr("isbn_page")|names }} links go straight to the book's page, and the {{ bookshops|rejectattr("isbn_page")|names }} links search for its ISBN. Even then, the shop may not have it.</li>
     <li><strong>Not every book comes in every format.</strong> Many books never come out as ebooks or audiobooks, or they arrive later, and the site can't tell which.</li>
     <li><strong>Dates change, and the lists aren't complete.</strong> Release dates move, especially for books, and the lists are built from public data that misses some releases. Check the date with the shop before you order.</li>
   </ul>
@@ -28,12 +28,12 @@
   <h2 id="other-shops">Other shops</h2>
   <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button, and every album a "Listen & buy" button.</p>
   <ul>
-    <li>Books: {% for s in bookshops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}.</li>
-    <li>Ebooks and audiobooks: {% for s in digital_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</li>
-    <li>Streaming: albums have a "Listen & buy" button with {% for s in streaming %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search for the album, which may find nothing until it's released.</li>
-    <li>Albums: {% for s in record_shops %}{{ s.name }}{{ ", " if loop.revindex > 2 else (" and " if not loop.last else "") }}{% endfor %}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
+    <li>Books: {{ bookshops|names }}.</li>
+    <li>Ebooks and audiobooks: {{ digital_shops|names }}. Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</li>
+    <li>Streaming: albums have a "Listen & buy" button with {{ streaming|names }}. These open a search for the album, which may find nothing until it's released.</li>
+    <li>Albums: {{ record_shops|names }}. These open a search on the shop's site, as the album links to Amazon UK do.</li>
   </ul>
-  <p>These are <strong>not affiliate links</strong>: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
+  <p>These are <strong>not affiliate links</strong>, Amazon Music included: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
 
   <h2>Other ways to help</h2>
   <p>If you'd like to support the site directly, you can <a href="{{ config.KOFI_URL }}" rel="noopener">buy me a coffee on Ko-fi</a>. Thank you!</p>

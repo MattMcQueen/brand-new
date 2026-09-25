@@ -341,3 +341,34 @@ def test_made_up_album_sleeves_carry_the_site_name(tmp_path):
     render.build([album], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     rock = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert '<span class="mc-label">Brand New</span>' in rock and 'class="vinyl"' in rock  # the record's there without a cover too
+
+
+def test_uk_edition_in_older_data_gets_isbn_bookshop_links(tmp_path):
+    """Data saved before uk_edition existed still links UK editions by ISBN, as the Amazon button does."""
+    from brandnew.__main__ import main
+    old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
+           "date": TODAY.isoformat(), "source": "google-books", "publisher": "Hachette UK", "genres": ["horror"],
+           "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}
+    data = tmp_path / "r.json"
+    data.write_text(json.dumps({"generated": "2026-09-25T05:00:00+01:00", "releases": [old]}), encoding="utf-8")
+    assert main(["build", "--data", str(data), "--out", str(tmp_path / "dist")]) == 0
+    html = (tmp_path / "dist" / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert "https://www.amazon.co.uk/dp/1529445280" in html
+    assert 'href="https://uk.bookshop.org/book/9781529445282"' in html
+    assert 'href="https://blackwells.co.uk/bookshop/product/9781529445282"' in html
+    assert 'href="https://www.waterstones.com/books/search/term/9781529445282"' in html
+
+
+def test_about_page_says_which_links_go_straight_to_the_book(tmp_path):
+    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert ("the Amazon, Bookshop.org and Blackwell&#39;s links go straight to the book's page, "
+            "and the Waterstones, Foyles and Hive links search for its ISBN") in about
+    assert "Amazon Music included" in about and "—" not in about
+
+
+def test_names():
+    class S:
+        def __init__(self, name): self.name = name
+    assert render.names([]) == "" and render.names([S("A")]) == "A"
+    assert render.names([S("A"), S("B")]) == "A and B" and render.names(map(S, "ABC")) == "A, B and C"
