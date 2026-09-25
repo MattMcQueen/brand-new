@@ -52,7 +52,9 @@ body {
 h1, h2, h3, .logo { font-family: ui-serif, Georgia, "Times New Roman", serif; line-height: 1.2; }
 a { color: var(--accent); text-underline-offset: 2px; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
-.icon { flex: none; vertical-align: -4px; }
+.icon { flex: none; vertical-align: -4px; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
+        stroke-linecap: round; stroke-linejoin: round; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 ul[role="list"] { list-style: none; margin: 0; padding: 0; }
 
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
