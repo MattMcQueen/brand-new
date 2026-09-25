@@ -150,6 +150,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .tile-fan-music img { width: 92px; height: 92px; }  /* three still fit the narrowest tile (198px inside) */
 .tile-fan img + img { margin-left: -24px; }
+.tile-fan img:nth-child(n+4) { display: none; }  /* spares, for when a cover fails (render.pick_tile_covers) */
 .tile-fan-music img + img { margin-left: -42px; }
 .tile-fan img:nth-child(1) { transform: rotate(-7deg); }
 .tile-fan img:nth-child(2) { transform: translateY(-4px); z-index: 1; }

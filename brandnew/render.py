@@ -95,16 +95,18 @@ def countdown(d: date, today: date) -> str | None:
     return None
 
 
-def pick_tile_covers(pages: list[GenrePage], per_tile: int = 3) -> None:
-    """Give each genre's tile up to `per_tile` covers: what's just out first, then what's next.
+def pick_tile_covers(pages: list[GenrePage], per_tile: int = 3, spares: int = 2) -> None:
+    """Give each genre's tile `per_tile` covers: what's just out first, then what's next.
     A release in several genres would otherwise front every one of their tiles, so covers already
-    used by an earlier tile are only taken when a genre has nothing else."""
+    used by an earlier tile are only taken when a genre has nothing else.
+    Each tile also gets up to `spares` more, hidden (style.css): the cover hosts sometimes fail,
+    app.js removes a cover that does, and the next one moves up so the fan stays full."""
     used = set()
     for p in pages:
         shown = [r for r in p.past + [r for _, rs in p.upcoming for r in rs] if r.cover]
         fresh = [r for r in shown if r.id not in used]
-        p.covers = (fresh + [r for r in shown if r.id in used])[:per_tile]
-        used.update(r.id for r in p.covers)
+        p.covers = (fresh + [r for r in shown if r.id in used])[:per_tile + spares]
+        used.update(r.id for r in p.covers[:per_tile])
 
 
 def lower_name(name: str) -> str:

@@ -293,7 +293,7 @@ def test_tile_covers_prefer_releases_no_earlier_tile_used():
                 rel(4, ["indie"]), rel(5, ["indie"], cover=False)]
     rock, indie = (render.genre_page(g, releases, TODAY) for g in config.MUSIC_GENRES if g.slug in ("rock", "indie"))
     render.pick_tile_covers([rock, indie])
-    assert [r.id for r in rock.covers] == ["r0", "r1", "r2"]
+    assert [r.id for r in rock.covers] == ["r0", "r1", "r2", "r3"]  # three shown, then a spare
     assert [r.id for r in indie.covers] == ["r4", "r0"]  # its own first; the shared one only to fill up
 
 
@@ -304,7 +304,7 @@ def test_tiles_show_a_cover_fan_or_the_kind_icon(tmp_path):
     assert len(fans) == len(config.ALL_GENRES)
     for kind, fan in fans:
         imgs = fan.count("<img ")
-        assert imgs <= 3 and (imgs or f'href="#icon-{kind}"' in fan)
+        assert imgs <= 5 and (imgs or f'href="#icon-{kind}"' in fan)  # three shown, up to two spares
         assert imgs == fan.count('alt=""') == fan.count('referrerpolicy="no-referrer"')
     assert '<span class="tile-fan' in (tmp_path / "books" / "index.html").read_text(encoding="utf-8")
 
@@ -425,3 +425,18 @@ def test_fonts_the_stylesheet_uses_are_hosted_here_with_their_licences():
     assert all((fonts / f).stat().st_size > 5000 for f in files)
     for name in ("figtree", "young-serif", "dm-sans"):
         assert "SIL Open Font License" in (fonts / f"OFL-{name}.txt").read_text(encoding="utf-8")
+
+
+def test_every_tile_has_spare_covers_in_case_one_fails(tmp_path):
+    """A cover host error (e.g. a Cover Art Archive 500) used to leave a fan of two."""
+    def rel(kind, genre, i):
+        return Release(kind=kind, id=f"{genre}{i}", title=f"T{i}", by="A", date=TODAY - timedelta(days=1), source="test",
+                       amazon_url="", genres=[genre], cover=f"https://x/{genre}{i}.jpg", popularity=100 - i)
+    releases = [rel(g.kind, g.slug, i) for g in config.ALL_GENRES for i in range(6)]
+    render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    fans = re.findall(r'<span class="tile-fan tile-fan-(books|music)" aria-hidden="true">(.*?)</span>', home, re.S)
+    assert {kind for kind, _ in fans} == {"books", "music"}
+    assert all(fan.count("<img ") == 5 for _, fan in fans)
+    css = (tmp_path / "static" / "style.css").read_text(encoding="utf-8")
+    assert ".tile-fan img:nth-child(n+4) { display: none; }" in css
