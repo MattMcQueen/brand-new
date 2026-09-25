@@ -243,3 +243,9 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .updated { font-size: .85rem; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* "Running late" notice (see app.js) */
+.stale {
+  margin: 16px 0 0; padding: 10px 14px; border: 1px solid var(--accent); border-left-width: 4px;
+  border-radius: 0 8px 8px 0; background: var(--accent-soft); color: var(--fg); font-size: .9rem;
+}

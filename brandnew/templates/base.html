@@ -42,6 +42,11 @@
   </div>
 </header>
 <main id="main" class="wrap">
+{# Shown by app.js when the data is more than config.STALE_HOURS old, i.e. the daily update has
+   failed for a couple of days. It's hidden to start with, so it never shows without JavaScript. #}
+<p class="stale" role="status" hidden data-generated="{{ generated_iso }}" data-stale-hours="{{ config.STALE_HOURS }}">
+  These lists were last updated on {{ updated }}. The daily update is running late, so some recent releases may be missing and some dates may have changed.
+</p>
 {% block main %}{% endblock %}
 {% block kofi_line %}
 <p class="kofi-line">Found something new? <a href="{{ config.KOFI_URL }}" rel="noopener" target="_blank" data-kofi-panel>Support me with a coffee on Ko-fi →</a></p>

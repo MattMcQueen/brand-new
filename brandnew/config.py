@@ -14,6 +14,7 @@ OTHER_SHOP_REL = "nofollow noopener"  # other bookshops: not affiliate links
 
 PAST_DAYS = 7            # "Out this week"
 PAST_FALLBACK_DAYS = 14  # used when a genre has nothing in the last 7 days
+STALE_HOURS = 48         # older data than this shows a "running late" notice (see static/app.js)
 UPCOMING_DAYS = 90       # "Coming soon"
 
 
