@@ -46,11 +46,21 @@ PLAIN_SUBTITLES = {"a novel", "a thriller", "a mystery", "a romance", "a novella
 IMPRINT = re.compile(r"\s*\((mills & boon|harlequin)[^)]*\)", re.I)
 
 
+# Genres that were renamed or split: data saved before the change is filed under the new slug
+# until the next fresh fetch sorts it properly. "sf-fantasy" was mostly fantasy.
+RENAMED_GENRES = {"sf-fantasy": "fantasy"}
+
+
 def relink(releases: list[Release]) -> list[Release]:
-    """Rebuild each book's Amazon link, so data saved by an older version (which linked some
-    books straight to an ISBN page) links the same way as fresh data."""
-    return [replace(r, amazon_url=amazon.book_url(r.title, r.by)) if r.kind == "books" else r
-            for r in releases]
+    """Rebuild each book's Amazon link and update renamed genres, so data saved by an older
+    version (which linked some books straight to an ISBN page) works like fresh data."""
+    out = []
+    for r in releases:
+        if r.kind == "books":
+            genres = list(dict.fromkeys(RENAMED_GENRES.get(s, s) for s in r.genres))
+            r = replace(r, amazon_url=amazon.book_url(r.title, r.by), genres=genres)
+        out.append(r)
+    return out
 
 
 def clean_title(title: str, subtitle: str | None = None) -> str:

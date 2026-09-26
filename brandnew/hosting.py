@@ -35,6 +35,10 @@ PAGE_CACHE = "public, max-age=600"
 STATIC_CACHE = "public, max-age=31536000, immutable"
 
 
+# Old page -> new page. "Science fiction & fantasy" was split in two; most of it was fantasy.
+MOVED = {"/books/sf-fantasy": "/books/fantasy/"}  # the route covers it with or without a slash
+
+
 def config() -> dict:
     return {
         # "auto": /books/horror -> /books/horror/, but files (style.css, robots.txt) are left alone;
@@ -42,6 +46,8 @@ def config() -> dict:
         "trailingSlash": "auto",
         "routes": [
             {"route": "/static/*", "headers": {"Cache-Control": STATIC_CACHE}},
+            # Genre pages that moved: search engines and bookmarks still have the old address
+            *({"route": f"{old}*", "redirect": new, "statusCode": 301} for old, new in MOVED.items()),
         ],
         "responseOverrides": {"404": {"rewrite": "/404.html"}},
         "globalHeaders": {**SECURITY_HEADERS, "Cache-Control": PAGE_CACHE},
@@ -57,5 +63,5 @@ def headers_for(path: str) -> dict:
     for route in cfg["routes"]:
         prefix = route["route"].rstrip("*")
         if path.startswith(prefix):
-            headers.update(route["headers"])
+            headers.update(route.get("headers", {}))
     return headers

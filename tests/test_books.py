@@ -140,7 +140,7 @@ def test_quota_exhausted_keeps_what_was_found(key):
     books = gb.fetch(TODAY, get_json=api)
     assert len(books) == 99
     assert api.calls == 100  # stopped at the first quota error, no retries or later genres
-    assert {g for b in books for g in b.genres} == {"crime-thrillers", "sf-fantasy"}
+    assert {g for b in books for g in b.genres} == {"crime-thrillers", "fantasy", "science-fiction"}
 
 
 def test_quota_exhausted_with_nothing_found_raises(key):
@@ -163,6 +163,8 @@ def test_relink_turns_older_isbn_links_into_searches():
            "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}  # saved by an older version
     album = {"kind": "music", "id": "m", "title": "A", "by": "B", "date": "2026-10-01", "source": "listenbrainz",
              "amazon_url": "https://www.amazon.co.uk/s?k=B+A&i=popular"}
-    book, same_album = gb.relink([Release.from_dict(old), Release.from_dict(album)])
+    book, same_album = gb.relink([Release.from_dict(old | {"genres": ["sf-fantasy", "fantasy", "horror"]}),
+                                  Release.from_dict(album)])
+    assert book.genres == ["fantasy", "horror"]  # the old combined genre is filed under fantasy
     assert book.amazon_url == "https://www.amazon.co.uk/s?k=The+Thoroughbreds+Elin+Hilderbrand&i=stripbooks"
     assert same_album.amazon_url == album["amazon_url"]
