@@ -7,7 +7,8 @@ name: Build site
 #     (08:00 UK time). The "due" job stops a slot early when the live site already has today's
 #     data, so a later slot only does the work when an earlier one failed or never ran;
 #   - on every push to main, reusing the morning's data;
-#   - by hand from the Actions tab ("Run workflow"), with or without fresh data.
+#   - by hand from the Actions tab ("Run workflow"), with or without fresh data, or adding only
+#     the ISFDB's books to the last run's data.
 # Deploying is off until the repository variable DEPLOY_ENABLED is set to "true".
 
 on:
@@ -24,6 +25,10 @@ on:
         description: "Fetch fresh data (untick to rebuild from the last run's data)"
         type: boolean
         default: true
+      isfdb_only:
+        description: "Only add the ISFDB's books, keeping the last run's other data (saves Google Books quota)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -87,7 +92,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      FRESH: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.fetch) }}
+      FRESH: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.fetch || inputs.isfdb_only)) }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -111,7 +116,7 @@ jobs:
         if: env.FRESH == 'true' || hashFiles('.cache/releases.json') == ''
         env:
           GOOGLE_BOOKS_KEY: ${{ secrets.GOOGLE_BOOKS_KEY }}
-        run: python -m brandnew fetch --previous .cache/releases.json
+        run: python -m brandnew fetch --previous .cache/releases.json ${{ inputs.isfdb_only && '--isfdb-only' || '' }}
 
       - name: Save data for the next run
         if: always() && steps.fetch.outcome == 'success'

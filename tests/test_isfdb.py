@@ -1,4 +1,6 @@
 import json
+
+import pytest
 from datetime import date
 
 from brandnew.sources import isfdb
@@ -139,3 +141,26 @@ def test_fetch_keeps_cached_months_when_the_page_fails(tmp_path, monkeypatch):
         raise RuntimeError("503")
     books = isfdb.fetch(TODAY, cache, get_json=google, get_text=broken)
     assert [b.title for b in books] == ["Star Road"]
+
+
+def test_isfdb_only_fetch_keeps_previous_data(tmp_path, monkeypatch):
+    from brandnew import __main__ as cli, store
+    from brandnew.models import Release
+    from brandnew.ukdates import now_uk
+    today = now_uk().date()
+    old_book = Release(kind="books", id="9780000000001", title="Old Book", by="A", date=today, source="google-books",
+                       amazon_url="", genres=["horror"])
+    album = Release(kind="music", id="m", title="Album", by="B", date=today, source="listenbrainz",
+                    amazon_url="", genres=["rock"])
+    previous = tmp_path / "prev.json"
+    store.save(previous, [old_book, album], now_uk())
+    new_book = Release(kind="books", id="9781250000002", title="Star Road", by="Ann Author", date=today,
+                       source="isfdb", amazon_url="", genres=["science-fiction"])
+    monkeypatch.setattr(cli.isfdb, "fetch", lambda day, cache: [new_book])
+    monkeypatch.setattr(cli.google_books, "fetch", lambda day: pytest.fail("no main Google Books fetch"))
+    monkeypatch.setattr(cli.listenbrainz, "fetch", lambda day, cache: pytest.fail("no ListenBrainz fetch"))
+    out = tmp_path / "data.json"
+    assert cli.main(["fetch", "--previous", str(previous), "--data", str(out), "--isfdb-only"]) == 0
+    _, releases = store.load(out)
+    assert {r.title for r in releases} == {"Old Book", "Star Road", "Album"}
+
