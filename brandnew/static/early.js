@@ -35,7 +35,7 @@ document.addEventListener("load", function (e) {
   if (!box || !img.naturalWidth || !box.clientWidth) return;
   shape = img.naturalHeight / img.naturalWidth;
   boxShape = box.clientHeight / box.clientWidth;
-  if (Math.abs(shape / boxShape - 1) > 0.15) {
+  if (Math.abs(shape / boxShape - 1) > 0.1) {  // ordinary covers are all within about 8%
     box.classList.add(shape < boxShape ? "is-wide" : "is-tall");
     box.style.setProperty("--shape", shape);
   }
