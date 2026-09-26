@@ -84,9 +84,10 @@
     </div>
   </div>
   <div class="card-source">
-    {% if r.info_url and r.source == "google-books" %}
+    {% set source_name = {"google-books": "Google Books", "isfdb": "ISFDB"}.get(r.source) %}
+    {% if r.info_url and source_name %}
     <a class="source-link" href="{{ r.info_url }}" rel="noopener" target="_blank"
-       title="See it on Google Books" aria-label="{{ r.title }} on Google Books (opens in a new tab)">More on Google Books</a>
+       title="See it on {{ source_name }}" aria-label="{{ r.title }} on {{ source_name }} (opens in a new tab)">More on {{ source_name }}</a>
     {% endif %}
   </div>
 </li>
