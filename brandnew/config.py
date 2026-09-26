@@ -29,34 +29,36 @@ class Genre:
     blurb: str = ""
 
 
+# Most popular first (UK sales, Nielsen BookScan 2025): the order of tiles, chips and fetching.
 BOOK_GENRES = (
     Genre("crime-thrillers", "Crime & thrillers", "books",
           ("fiction / thrillers", "fiction / mystery & detective", "fiction / crime"),
           "Detectives, heists, spies and page-turners."),
-    Genre("fantasy", "Fantasy", "books", ("fiction / fantasy",), "Magic, quests and other worlds."),
-    Genre("science-fiction", "Science fiction", "books", ("fiction / science fiction",),
-          "Space, the future, and science that changes everything."),
-    Genre("romance", "Romance", "books", ("fiction / romance",), "Love stories of every kind."),
-    Genre("horror", "Horror", "books", ("fiction / horror",), "Ghosts, monsters and dread."),
-    Genre("historical-fiction", "Historical fiction", "books", ("fiction / historical",),
-          "Stories set in the past."),
-    Genre("literary-fiction", "Literary fiction", "books", ("fiction / literary",),
-          "Prize contenders and book-club picks."),
     Genre("childrens", "Children's", "books", ("juvenile fiction",),
           "Picture books, first chapter books and middle-grade adventures."),
+    Genre("romance", "Romance", "books", ("fiction / romance",), "Love stories of every kind."),
+    Genre("fantasy", "Fantasy", "books", ("fiction / fantasy",), "Magic, quests and other worlds."),
+    Genre("literary-fiction", "Literary fiction", "books", ("fiction / literary",),
+          "Prize contenders and book-club picks."),
+    Genre("historical-fiction", "Historical fiction", "books", ("fiction / historical",),
+          "Stories set in the past."),
+    Genre("science-fiction", "Science fiction", "books", ("fiction / science fiction",),
+          "Space, the future, and science that changes everything."),
+    Genre("horror", "Horror", "books", ("fiction / horror",), "Ghosts, monsters and dread."),
 )
 
+# Most popular first (UK album market share, BPI 2025; it counts indie and metal within rock and pop).
 MUSIC_GENRES = (
     Genre("rock", "Rock", "music", ("rock",)),
     Genre("pop", "Pop", "music", ("pop",)),
-    Genre("electronic", "Electronic", "music", ("electronic", "electronica", "techno", "idm", "drum and bass")),
     Genre("hip-hop", "Hip hop", "music", ("hip hop", "hip-hop", "rap")),
     Genre("rnb-soul", "R&B & soul", "music", ("r&b", "rnb", "soul")),
-    Genre("folk", "Folk", "music", ("folk",)),
-    Genre("country", "Country", "music", ("country", "americana", "bluegrass")),
-    Genre("jazz", "Jazz", "music", ("jazz",)),
-    Genre("metal", "Metal", "music", ("metal", "metalcore")),
+    Genre("electronic", "Electronic", "music", ("electronic", "electronica", "techno", "idm", "drum and bass")),
     Genre("indie", "Indie", "music", ("indie",)),
+    Genre("metal", "Metal", "music", ("metal", "metalcore")),
+    Genre("country", "Country", "music", ("country", "americana", "bluegrass")),
+    Genre("folk", "Folk", "music", ("folk",)),
+    Genre("jazz", "Jazz", "music", ("jazz",)),
 )
 
 ALL_GENRES = BOOK_GENRES + MUSIC_GENRES
