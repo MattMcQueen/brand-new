@@ -23,6 +23,15 @@ document.addEventListener("error", function (e) {
   img.removeAttribute("srcset");  // retry the size the browser chose, and only that
   img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "retry=" + (tries + 1);  // not a cached failure
 }, true);
+// 3. A card's cover fills its box, trimming the edges. A cover that's a very different shape (a
+//    landscape picture book, a square box set) would lose too much, so it's shown whole instead.
 document.addEventListener("load", function (e) {
-  if (e.target.classList && e.target.classList.contains("is-retrying")) e.target.classList.remove("is-retrying");
+  var img = e.target, box;
+  if (!img.classList) return;
+  img.classList.remove("is-retrying");
+  box = img.closest && img.closest(".cover");
+  if (box && img.naturalWidth && box.clientWidth &&
+      Math.abs((img.naturalHeight / img.naturalWidth) / (box.clientHeight / box.clientWidth) - 1) > 0.15) {
+    img.classList.add("is-odd-shape");
+  }
 }, true);

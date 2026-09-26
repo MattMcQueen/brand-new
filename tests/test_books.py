@@ -26,7 +26,8 @@ def test_to_release():
     r = gb.to_release(item(days=3), "horror", TODAY)
     assert r.id == "9780306406157" and r.genres == ["horror"]
     assert r.amazon_url == "https://www.amazon.co.uk/s?k=A+Novel+Ann+Author&i=stripbooks"
-    assert r.cover == "https://books.google.com/x?id=1"
+    assert r.cover == "https://books.google.com/x?id=1&fife=w300"
+    assert r.cover_2x == "https://books.google.com/x?id=1&fife=w600"
     assert r.info_url.startswith("https://books.google.co.uk/")
 
 
@@ -160,11 +161,15 @@ def test_relink_turns_older_isbn_links_into_searches():
     from brandnew.models import Release
     old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
            "date": "2026-10-01", "source": "google-books", "publisher": "Hachette UK", "uk_edition": True,
-           "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}  # saved by an older version
+           "amazon_url": "https://www.amazon.co.uk/dp/1529445280",  # saved by an older version
+           "cover": "https://books.google.com/books/content?id=1&zoom=1"}  # 128 pixels wide
     album = {"kind": "music", "id": "m", "title": "A", "by": "B", "date": "2026-10-01", "source": "listenbrainz",
              "amazon_url": "https://www.amazon.co.uk/s?k=B+A&i=popular"}
     book, same_album = gb.relink([Release.from_dict(old | {"genres": ["sf-fantasy", "fantasy", "horror"]}),
                                   Release.from_dict(album)])
     assert book.genres == ["fantasy", "horror"]  # the old combined genre is filed under fantasy
     assert book.amazon_url == "https://www.amazon.co.uk/s?k=The+Thoroughbreds+Elin+Hilderbrand&i=stripbooks"
+    assert book.cover == "https://books.google.com/books/content?id=1&zoom=1&fife=w300"
+    assert book.cover_2x == "https://books.google.com/books/content?id=1&zoom=1&fife=w600"
+    assert gb.relink([book])[0].cover == book.cover  # the same however many times it's run
     assert same_album.amazon_url == album["amazon_url"]

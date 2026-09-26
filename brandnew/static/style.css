@@ -204,6 +204,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cover img.is-retrying { visibility: hidden; }  /* the made-up cover or the record shows while it tries again (early.js) */
+.cover img.is-odd-shape { object-fit: contain; }  /* shown whole, on the panel colour (early.js) */
 /* Made-up covers, for books with no cover (or one that won't load): a classic paperback. The
    colours come from the book (hue-0..7). Albums without a cover show just the record. */
 .hue-0 { --mc1: #c2410c; --mc2: #f59e0b; }

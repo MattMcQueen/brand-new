@@ -176,9 +176,10 @@ def fetch(today: date, cache_path: Path, get_json=None, get_text=None) -> list[R
         if not genres or not r["authors"]:
             continue
         by = ", ".join(r["authors"][:2])
+        cover, cover_2x = gb.covers(info["cover"])
         out.append(Release(kind="books", id=r["isbn"], title=r["title"], by=by, date=gb.exact_date(r["date"]),
                            source="isfdb", amazon_url=amazon.book_url(r["title"], by), genres=genres,
-                           cover=info["cover"], publisher=r["publisher"], info_url=r["url"]))
+                           cover=cover, cover_2x=cover_2x, publisher=r["publisher"], info_url=r["url"]))
 
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache_path.write_text(json.dumps({"months": months, "books": books}), encoding="utf-8")
