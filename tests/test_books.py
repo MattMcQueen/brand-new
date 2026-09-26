@@ -71,10 +71,10 @@ def test_no_categories_is_allowed():
 
 
 def test_queries_cover_next_year_near_year_end():
-    q = gb.queries(("fiction / horror",), TODAY)
+    q = gb.queries(("horror",), TODAY)
     assert q[:2] == ['subject:"fiction / horror" 2026', 'subject:"fiction / horror" 2026 novel']
     assert len(q) == len(gb.VARIATIONS) and not any("2027" in x for x in q)
-    assert 'subject:"fiction / horror" 2027' in gb.queries(("fiction / horror",), date(2026, 11, 1))
+    assert 'subject:"fiction / horror" 2027' in gb.queries(("horror",), date(2026, 11, 1))
 
 
 def test_merge_editions_and_genres():
@@ -104,8 +104,7 @@ class FakeApi:
         if self.calls in self.fail_on:
             raise self.error
         isbn = f"978{self.calls:010d}"
-        cats = ("Computers / Security / General",) if "computers" in url else ("Fiction",)
-        return {"items": [item(f"Book {self.calls}", isbn=isbn, days=1, cats=cats)]}
+        return {"items": [item(f"Book {self.calls}", isbn=isbn, days=1)]}
 
 
 @pytest.fixture
@@ -118,7 +117,7 @@ def test_fetch_stays_within_budget(key):
     books = gb.fetch(TODAY, get_json=api)
     assert api.calls <= gb.MAX_CALLS
     share = gb.MAX_CALLS // len(gb.config.BOOK_GENRES)
-    assert api.calls == sum(min(share, len(gb.queries(g.terms, TODAY, g.variations or gb.VARIATIONS)) * gb.PAGES) for g in gb.config.BOOK_GENRES)
+    assert api.calls == sum(min(share, len(gb.queries(g.terms, TODAY)) * gb.PAGES) for g in gb.config.BOOK_GENRES)
     assert {g for b in books for g in b.genres} == {g.slug for g in gb.config.BOOK_GENRES}
 
 
@@ -172,21 +171,3 @@ def test_relink_fixes_data_saved_before_the_rules():
     links = dict(shops.book_links(uk_book.id, uk_book.title, uk_book.by, uk_book.uk_edition))
     assert links["Bookshop.org"] == "https://uk.bookshop.org/book/9781529445282"
     assert not us_book.uk_edition and us_book.amazon_url == "https://www.amazon.co.uk/s?k=Die+Famous+Elin+Hilderbrand&i=stripbooks"
-
-
-def test_tech_genre_keeps_computing_books_only():
-    computing = item("Building Secure AI Systems", cats=("Computers / Security / General",), publisher="O'Reilly Media")
-    assert gb.to_release(computing, "tech-ai", TODAY, "computers") is not None
-    assert gb.to_release(item("A Novel"), "tech-ai", TODAY, "computers") is None           # fiction
-    assert gb.to_release(computing, "horror", TODAY) is None                                # not fiction
-    exam = item("CompTIA Security+ Exam Guide", cats=("Computers / Security / General",), publisher="McGraw Hill")
-    assert gb.to_release(exam, "tech-ai", TODAY, "computers") is None
-    wiley = item("AI Engineering", cats=("Computers / Artificial Intelligence",), publisher="Wiley")
-    assert gb.to_release(wiley, "tech-ai", TODAY, "computers") is not None
-
-
-def test_tech_queries_use_computing_subjects_and_own_variations():
-    g = next(g for g in gb.config.BOOK_GENRES if g.slug == "tech-ai")
-    q = gb.queries(g.terms, TODAY, g.variations)
-    assert q[0] == 'subject:"computers / artificial intelligence" 2026'
-    assert not any("novel" in x or "book 1" in x for x in q)
