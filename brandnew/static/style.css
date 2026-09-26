@@ -203,9 +203,9 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .cover { position: relative; aspect-ratio: 2 / 3; background: var(--panel); display: grid; place-items: center; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.cover img.is-retrying { visibility: hidden; }  /* the made-up cover shows while it tries again (early.js) */
-/* Made-up covers, for releases with no cover (or one that won't load): a classic paperback for
-   books, a bold printed sleeve for albums. The colours come from the release (hue-0..7). */
+.cover img.is-retrying { visibility: hidden; }  /* the made-up cover or the record shows while it tries again (early.js) */
+/* Made-up covers, for books with no cover (or one that won't load): a classic paperback. The
+   colours come from the book (hue-0..7). Albums without a cover show just the record. */
 .hue-0 { --mc1: #c2410c; --mc2: #f59e0b; }
 .hue-1 { --mc1: #0f766e; --mc2: #5eead4; }
 .hue-2 { --mc1: #6d28d9; --mc2: #c4b5fd; }
@@ -240,19 +240,6 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .made-cover-books .mc-title { font: 1rem/1.2 var(--serif); -webkit-line-clamp: 4; line-clamp: 4; }
 .made-cover-books .mc-by { color: var(--mc1); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; -webkit-line-clamp: 2; line-clamp: 2; }
-.made-cover-music {
-  justify-content: flex-end; align-items: flex-start; gap: 5px; padding: 10%;
-  background: repeating-radial-gradient(circle at 80% 12%, var(--mc2) 0 9px, var(--mc1) 9px 18px);
-}
-.made-cover-music .mc-label {  /* the "record label", over the middle of the rings; like the paperbacks' publisher band */
-  position: absolute; top: 8%; right: 8%; padding: 2px 8px; border-radius: 999px; background: #fff; color: var(--mc1);
-  font-size: .6rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 1px 4px rgb(0 0 0 / .25);
-}
-.made-cover-music .mc-title {
-  max-width: 100%; padding: 3px 7px; background: #111; color: #fff;
-  font-size: .9rem; font-weight: 800; line-height: 1.15; text-transform: uppercase; -webkit-line-clamp: 3; line-clamp: 3;
-}
-.made-cover-music .mc-by { max-width: 100%; padding: 2px 7px; background: #fff; color: #111; font-size: .72rem; font-weight: 700; -webkit-line-clamp: 1; line-clamp: 1; }
 .card-title {
   font-size: 1.1rem; line-height: 1.2; margin: 0; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
@@ -405,8 +392,9 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   transition: transform .35s ease;
 }
 @media (hover: hover) {
-  .card:hover .cover-music img, .card:hover .cover-music .made-cover { transform: translateX(-16%) scale(.8); }
-  .card:hover .vinyl { transform: translateX(26%) rotate(60deg); }
+  /* Only with a cover showing: on its own (no cover, or while one retries) the record stays put */
+  .card:hover .cover-music img { transform: translateX(-16%) scale(.8); }
+  .card:hover .cover-music:has(img:not(.is-retrying)) .vinyl { transform: translateX(26%) rotate(60deg); }
   /* Books turn to show the edges of their pages. The cover and the pages share one turn (same
      box size, origin and perspective), so they stay joined; resting and hover use the same list
      of functions so the browser can animate between them. */

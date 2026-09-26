@@ -9,7 +9,8 @@ try {
 //    leaving a broken-image box: in a genre tile's fan a hidden spare moves up in its place
 //    (style.css shows the first three). A card has no spare, so it tries twice more first: the
 //    Cover Art Archive sends each request to one of several copies, and some can be broken while
-//    others work. The card shows its made-up cover meanwhile, and keeps it if every try fails.
+//    others work. The card shows its made-up cover (books) or the record (albums) meanwhile,
+//    and keeps it if every try fails.
 //    Runs here, not in app.js, so it's listening before any cover starts loading.
 document.addEventListener("error", function (e) {
   var img = e.target, tries;
