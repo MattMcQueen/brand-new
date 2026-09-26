@@ -40,8 +40,9 @@
     {% set sticker = countdown(r.date, today) %}
     {% if sticker %}<span class="sticker" aria-hidden="true">{{ sticker }}</span>{% endif %}
   </div>
-  <h3 class="card-title" title="{{ r.title }}">{{ r.title }}</h3>
-  <p class="card-by" title="{{ r.by }}">{{ r.by }}</p>
+  {# The inner span is what's cut to a few lines: see .clamp in style.css #}
+  <h3 class="card-title" title="{{ r.title }}"><span class="clamp">{{ r.title }}</span></h3>
+  <p class="card-by" title="{{ r.by }}"><span class="clamp">{{ r.by }}</span></p>
   <p class="card-date"><time datetime="{{ r.date.isoformat() }}">{{ r.date|uk_date }}</time></p>
   <div class="card-extra">
     {% if r.tags %}<p class="card-tags">{% for t in r.tags[:3] %}<span class="tag">{{ t }}</span>{% endfor %}</p>{% endif %}
