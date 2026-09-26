@@ -1,9 +1,7 @@
 # Brand New
 
-New and upcoming book and music releases by genre, with links to Amazon UK.
-To be hosted at https://brand-new.matt-rarely-writes.co.uk.
-
-Status: in development. Nothing is deployed yet.
+New and upcoming book and music releases by genre, with links to Amazon UK and other shops.
+Live at https://brand-new.matt-rarely-writes.co.uk.
 
 ## How it works
 
@@ -11,11 +9,12 @@ A Python script fetches releases and renders plain HTML pages into `dist/`. The
 [Build site](.github/workflows/build.yml) GitHub Action runs the tests on every pull request and
 rebuilds the site with fresh data once a day and whenever `main` changes. The daily run has three
 scheduled slots, 09:17, 11:47 and 15:17 UK time in summer (an hour earlier in winter), because
-GitHub's schedules are best-effort; a slot stops early when the live site already has today's data. Each run's data and MusicBrainz genre lookups are kept in the Actions cache for the next run.
-The built site is attached to each run for a week. Deploying to Azure Static Web Apps is off until the
-repository variable `DEPLOY_ENABLED` is `true` and the `AZURE_STATIC_WEB_APPS_API_TOKEN` secret exists.
+GitHub's schedules are best-effort; a slot stops early when the live site already has today's data.
+Each run's data and MusicBrainz genre lookups are kept in the Actions cache for the next run. The
+built site is attached to each run for a week, and runs on `main` deploy it to Azure Static Web Apps
+(only while the repository variable `DEPLOY_ENABLED` is `true`).
 
-Secrets: `GOOGLE_BOOKS_KEY` (GitHub Actions secret).
+Secrets (GitHub Actions): `GOOGLE_BOOKS_KEY`, `AZURE_STATIC_WEB_APPS_API_TOKEN`.
 
 ## Local development
 
