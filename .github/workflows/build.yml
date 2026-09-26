@@ -1,9 +1,11 @@
 name: Build site
 
 # Tests run on every pull request and push. The site is rebuilt:
-#   - every morning, with fresh data. GitHub's cron is in UTC: 08:17 UTC is 09:17 BST / 08:17 GMT.
-#     That's after Google Books' daily quota resets at midnight Pacific (08:00 UK time), so each
-#     run starts with a fresh quota;
+#   - once a day, with fresh data. GitHub's scheduled runs are best-effort (late, sometimes
+#     dropped), so there are three slots: 09:17, 11:47 and 15:17 BST (an hour earlier in GMT;
+#     cron is in UTC). All are after Google Books' daily quota resets at midnight Pacific
+#     (08:00 UK time). The "due" job stops a slot early when the live site already has today's
+#     data, so a later slot only does the work when an earlier one failed or never ran;
 #   - on every push to main, reusing the morning's data;
 #   - by hand from the Actions tab ("Run workflow"), with or without fresh data.
 # Deploying is off until the repository variable DEPLOY_ENABLED is set to "true".
@@ -11,6 +13,8 @@ name: Build site
 on:
   schedule:
     - cron: "17 8 * * *"
+    - cron: "47 10 * * *"
+    - cron: "17 14 * * *"
   push:
     branches: [main]
   pull_request:
@@ -29,7 +33,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Scheduled runs only: is today's data already live? Anything else always runs. If the live
+  # data can't be read (site down, bad JSON), the run goes ahead.
+  due:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        env:
+          DATA_URL: https://brand-new.matt-rarely-writes.co.uk/data/releases.json
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          live=$(curl -fsS --max-time 30 "$DATA_URL?t=$(date +%s)" | python3 -c '
+          import json, sys
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          print(datetime.fromisoformat(json.load(sys.stdin)["generated"]).astimezone(ZoneInfo("Europe/London")).date())
+          ' || true)
+          today=$(TZ=Europe/London date +%F)
+          if [ "$live" = "$today" ]; then
+            echo "::notice title=Already refreshed::The live site already has today's data ($live), so this slot is skipped."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Live data is from ${live:-unknown}, today is $today: refreshing."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   test:
+    needs: due
+    if: needs.due.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
