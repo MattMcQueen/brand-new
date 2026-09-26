@@ -48,12 +48,16 @@ def test_match_genres():
     assert lb.match_genres(["trip hop"]) == []
     assert lb.match_genres(["metalcore"]) == ["metal"]
     assert lb.match_genres(["krautrock"]) == []
+    assert lb.match_genres(["contemporary country", "country pop"]) == ["pop", "country"]
+    assert lb.match_genres(["alternative country", "americana"]) == ["country"]
+    assert lb.match_genres(["contemporary r&b", "neo soul"]) == ["rnb-soul"]
+    assert lb.match_genres(["soulful house"]) == []
 
 
 def test_to_release():
     a = dict(feed_item("Album", tags=["Jazz"]), date=TODAY)
     r = lb.to_release(a, ["jazz", "soul"], 900)
-    assert r.genres == ["jazz"] and r.tags == ["jazz", "soul"] and r.popularity == 900
+    assert r.genres == ["rnb-soul", "jazz"] and r.tags == ["jazz", "soul"] and r.popularity == 900
     assert r.cover == "https://coverartarchive.org/release/rel-rg1/1-250.jpg"
     assert r.amazon_url == "https://www.amazon.co.uk/s?k=Band+Album&i=popular"
     assert lb.to_release(a | {"release_tags": []}, ["polka"], 900) is None
