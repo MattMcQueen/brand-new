@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from . import config, hosting, pipeline, render, sample, store
-from .sources import google_books, listenbrainz
+from .sources import google_books, isfdb, listenbrainz
 from .ukdates import now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
@@ -15,6 +15,18 @@ DEFAULT_DATA = Path(".cache/releases.json")
 TOO_FEW_RELEASES = 3
 DEFAULT_OUT = Path("dist")
 GENRE_CACHE = Path(".cache/artist-genres.json")
+ISFDB_CACHE = Path(".cache/isfdb.json")
+
+
+def fetch_books(today) -> list:
+    """Google Books, plus science fiction, fantasy and horror from the ISFDB. The ISFDB is extra:
+    if it fails, the books from Google Books still go ahead."""
+    found = google_books.fetch(today)
+    try:
+        found += isfdb.fetch(today, ISFDB_CACHE)
+    except Exception as e:  # noqa: BLE001 - any ISFDB problem just means fewer books today
+        print(f"! ISFDB failed ({e}); carrying on without it", file=sys.stderr)
+    return google_books.merge(found)
 
 
 def cmd_fetch(args) -> int:
@@ -28,7 +40,7 @@ def cmd_fetch(args) -> int:
             print(f"Previous run: {len(previous)} releases from {args.previous}", file=sys.stderr)
         except Exception as e:  # noqa: BLE001 - first run, or the site isn't live yet
             print(f"No previous data ({e}); carrying on without a fallback.", file=sys.stderr)
-    sources = {"books": lambda: google_books.fetch(today),
+    sources = {"books": lambda: fetch_books(today),
                "music": lambda: listenbrainz.fetch(today, GENRE_CACHE)}
     releases = []
     for kind in ("books", "music"):

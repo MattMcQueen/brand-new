@@ -1,4 +1,4 @@
-"""Polite JSON fetching: a proper User-Agent, retries, and per-host rate limits."""
+"""Polite fetching: a proper User-Agent, retries, and per-host rate limits."""
 import json
 import re
 import sys
@@ -38,10 +38,20 @@ def _is_daily_quota(e: Exception) -> bool:
         return False
 
 
+def get_text(url: str, tries: int = 2, timeout: int = 60) -> str:
+    """GET a web page as text (ISFDB pages are Latin-1). Raises RuntimeError after the last try."""
+    return _get(url, None, tries, timeout, "text/html", lambda r: r.read().decode(
+        r.headers.get_content_charset() or "iso-8859-1", "replace"))
+
+
 def get_json(url: str, data: dict | list | None = None, tries: int = 4, timeout: int = 60):
     """GET (or POST when `data` is given) and parse JSON. Raises after the last failed try."""
+    return _get(url, data, tries, timeout, "application/json", json.load)
+
+
+def _get(url: str, data, tries: int, timeout: int, accept: str, read):
     host = urlsplit(url).hostname or ""
-    headers = {"User-Agent": config.USER_AGENT, "Accept": "application/json"}
+    headers = {"User-Agent": config.USER_AGENT, "Accept": accept}
     body = None
     if data is not None:
         body = json.dumps(data).encode()
@@ -51,7 +61,7 @@ def get_json(url: str, data: dict | list | None = None, tries: int = 4, timeout:
         try:
             req = urllib.request.Request(url, data=body, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.load(r)
+                return read(r)
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
             status = getattr(e, "code", None)
             if status == 429 and _is_daily_quota(e):
