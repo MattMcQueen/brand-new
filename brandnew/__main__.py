@@ -8,7 +8,7 @@ from pathlib import Path
 
 from . import config, hosting, pipeline, render, sample, store
 from .sources import google_books, isfdb, listenbrainz
-from .ukdates import now_uk
+from .ukdates import in_fetch_window, now_uk
 
 DEFAULT_DATA = Path(".cache/releases.json")
 # Exit code for "the data is too thin to build from": the workflow treats it as a warning, not a failure.
@@ -42,9 +42,15 @@ def cmd_fetch(args) -> int:
             print(f"No previous data ({e}); carrying on without a fallback.", file=sys.stderr)
     sources = {"books": lambda: fetch_books(today),
                "music": lambda: listenbrainz.fetch(today, GENRE_CACHE)}
+    only = args.only
+    if args.isfdb_only:
+        # Keep the previous run's books (and music), and add the ISFDB's: no main Google Books fetch
+        kept = [r for r in previous if r.kind == "books" and in_fetch_window(r.date, today)]
+        sources["books"] = lambda: google_books.merge(kept + isfdb.fetch(today, ISFDB_CACHE))
+        only = ["books"]
     releases = []
     for kind in ("books", "music"):
-        if kind in sources and kind in args.only:
+        if kind in sources and kind in only:
             print(f"Fetching {kind}...", file=sys.stderr)
             releases += pipeline.with_fallback(kind, sources[kind], previous, today)
         else:
@@ -115,6 +121,8 @@ def main(argv=None) -> int:
     f.add_argument("--data", type=Path, default=DEFAULT_DATA)
     f.add_argument("--previous", help="yesterday's data file or URL, used if a source fails")
     f.add_argument("--only", nargs="+", choices=["books", "music"], default=["books", "music"])
+    f.add_argument("--isfdb-only", action="store_true",
+                   help="keep the previous run's data and just add the ISFDB's books (saves Google Books quota)")
     f.set_defaults(func=cmd_fetch)
     b = sub.add_parser("build", help="render the site into dist/")
     b.add_argument("--data", type=Path, default=DEFAULT_DATA)
