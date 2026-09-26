@@ -329,13 +329,15 @@ def test_cards_get_stickers_and_albums_get_a_record(tmp_path):
     assert rock.count('<span class="vinyl" aria-hidden="true"></span>') == rock.count('<li class="card"') == 1
 
 
-def test_surprise_me_is_on_the_home_and_kind_pages(tmp_path):
+def test_surprise_me_is_on_the_home_kind_and_genre_pages(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     for page, kind in (("index.html", ""), ("books/index.html", "books"), ("music/index.html", "music")):
         html = (tmp_path / page).read_text(encoding="utf-8")
         assert re.search(rf'<button class="surprise-btn" type="button" data-surprise="{kind}" hidden', html)
         assert '<div class="surprise" id="surprise" popover' in html
-    assert "data-surprise" not in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    horror = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert re.search(r'<button class="surprise-btn" type="button" data-surprise="books" data-genre="horror" hidden\s+'
+                     r'title="Pick a random horror book"', horror)
     assert (tmp_path / "data" / "releases.json").exists()  # what the button picks from
 
 

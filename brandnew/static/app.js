@@ -104,14 +104,15 @@
 })();
 
 // "Surprise me": picks a random release from the last week (with a cover) and shows it, after a
-// quick shuffle through other covers. The data file is only fetched on the first click.
+// quick shuffle through other covers. On a genre page (data-genre) it picks from that page's own
+// cards instead, just out and coming soon. The data file is only fetched on the first click.
 (function () {
   var buttons = document.querySelectorAll("[data-surprise]");
   var box = document.getElementById("surprise");
   if (!buttons.length || !box || typeof box.showPopover !== "function" || !window.fetch) return;
   var img = box.querySelector(".surprise-cover img");
   var go = box.querySelector(".surprise-go");
-  var data = null, kind = "", timer = null, runs = 0;
+  var data = null, kind = "", genre = "", timer = null, runs = 0;
 
   function load() {
     if (data) return Promise.resolve(data);
@@ -119,6 +120,13 @@
   }
   // The same "last week" as the pages: the seven days up to the day the data was built.
   function choices() {
+    if (genre) {
+      var onPage = {};
+      document.querySelectorAll(".card[data-id]").forEach(function (c) { onPage[c.dataset.id] = true; });
+      return data.releases.filter(function (r) {
+        return r.cover && r.kind === kind && onPage[r.id] && r.genres.indexOf(genre) >= 0;
+      });
+    }
     var end = data.generated.slice(0, 10);
     var start = new Date(end + "T00:00:00Z");
     start.setUTCDate(start.getUTCDate() - 7);
@@ -131,9 +139,9 @@
   function reveal(r) {
     box.querySelector(".surprise-title").textContent = r.title;
     box.querySelector(".surprise-by").textContent = r.by;
-    box.querySelector(".surprise-date").textContent = "Out " + new Date(r.date + "T00:00:00Z")
-      .toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
-    go.href = "/" + r.kind + "/" + r.genres[0] + "/#pick-" + encodeURIComponent(r.id);
+    box.querySelector(".surprise-date").textContent = (r.date > data.generated.slice(0, 10) ? "Due " : "Out ") +
+      new Date(r.date + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+    go.href = "/" + r.kind + "/" + (genre || r.genres[0]) + "/#pick-" + encodeURIComponent(r.id);
     go.setAttribute("aria-label", "See " + r.title + " by " + r.by);
     box.classList.remove("is-shuffling");
   }
@@ -168,18 +176,29 @@
     }).catch(function () { /* no data: the button just does nothing */ });
   }
   buttons.forEach(function (b) {
+    if (b.dataset.genre && !document.querySelector(".card .cover img")) return;  // nothing with a cover to pick
     b.hidden = false;
-    b.addEventListener("click", function () { kind = b.dataset.surprise; surprise(); });
+    b.addEventListener("click", function () { kind = b.dataset.surprise; genre = b.dataset.genre || ""; surprise(); });
   });
   box.querySelector(".surprise-again").addEventListener("click", surprise);
 })();
 
 // Arriving from "Surprise me" (#pick-<id>): scroll to that release's card and make it wiggle.
+// On a genre page the pick is on the same page, so this runs again when the address changes.
 (function () {
-  if (location.hash.indexOf("#pick-") !== 0 || !window.CSS || !CSS.escape) return;
-  var id = decodeURIComponent(location.hash.slice(6));
-  var card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
-  if (!card) return;
-  card.scrollIntoView({ block: "center" });
-  card.classList.add("is-picked");
+  if (!window.CSS || !CSS.escape) return;
+  function show() {
+    if (location.hash.indexOf("#pick-") !== 0) return;
+    var id = decodeURIComponent(location.hash.slice(6));
+    var card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
+    if (!card) return;
+    var box = document.getElementById("surprise");
+    if (box && box.matches && box.matches(":popover-open")) box.hidePopover();
+    document.querySelectorAll(".card.is-picked").forEach(function (c) { c.classList.remove("is-picked"); });
+    void card.offsetWidth;  // restart the wiggle if it's the same card again
+    card.scrollIntoView({ block: "center" });
+    card.classList.add("is-picked");
+  }
+  show();
+  window.addEventListener("hashchange", show);
 })();

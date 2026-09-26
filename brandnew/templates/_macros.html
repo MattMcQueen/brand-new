@@ -93,9 +93,10 @@
 {%- endmacro %}
 
 {# "Surprise me": picks a random release from the last week (app.js). Hidden without JavaScript. #}
-{% macro surprise_button(kind="") -%}
-<button class="surprise-btn" type="button" data-surprise="{{ kind }}" hidden
-        title="Pick a random new {{ {"books": "book", "music": "album"}.get(kind, "release") }}">
+{# `genre`: pick only from the cards on that genre's page (just out and coming soon) #}
+{% macro surprise_button(kind="", genre=None) -%}
+<button class="surprise-btn" type="button" data-surprise="{{ kind }}"{% if genre %} data-genre="{{ genre.slug }}"{% endif %} hidden
+        title="Pick a random {{ genre.name|lower_name ~ " " if genre else "new " }}{{ {"books": "book", "music": "album"}.get(kind, "release") }}">
   {{- icon("dice") }}<span>Surprise me</span></button>
 {%- endmacro %}
 

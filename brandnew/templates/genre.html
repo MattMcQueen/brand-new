@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import card with context %}
+{% from "_macros.html" import card, surprise_button with context %}
 {% set noun = "books" if page.genre.kind == "books" else "albums" %}
 {% block title %}New {{ page.genre.name|lower_name }} {{ noun }}: out now and coming soon | {{ config.SITE_NAME }}{% endblock %}
 {% block description %}New {{ page.genre.name|lower_name }} {{ noun }}: {{ page.past|length }} out {{ "this week" if page.past_days == config.PAST_DAYS else "in the last two weeks" }} and {{ page.count - page.past|length }} due over the next three months.{% endblock %}
@@ -15,6 +15,7 @@
 {% if page.genre.kind == "books" %}
 <p class="powered">Book data <img src="https://books.google.com/googlebooks/images/poweredby.png" alt="powered by Google" height="18" loading="lazy" referrerpolicy="no-referrer"></p>
 {% endif %}
+{{ surprise_button(page.genre.kind, page.genre) }}
 
 <section aria-labelledby="past-h">
   <h2 id="past-h">{{ "Out this week" if page.past_days == config.PAST_DAYS else "Out in the last two weeks" }}</h2>
