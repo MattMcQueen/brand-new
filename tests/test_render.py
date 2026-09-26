@@ -357,27 +357,25 @@ def test_albums_without_a_cover_show_just_the_record(tmp_path):
     assert 'class="vinyl"' in card and "made-cover" not in card and "<img" not in card
 
 
-def test_uk_edition_in_older_data_gets_isbn_bookshop_links(tmp_path):
-    """Data saved before uk_edition existed still links UK editions by ISBN, as the Amazon button does."""
+def test_older_data_with_isbn_links_builds_with_searches(tmp_path):
+    """Data saved when UK editions linked straight to an ISBN page gets search links, like fresh data."""
     from brandnew.__main__ import main
     old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
            "date": TODAY.isoformat(), "source": "google-books", "publisher": "Hachette UK", "genres": ["horror"],
-           "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}
+           "uk_edition": True, "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}
     data = tmp_path / "r.json"
     data.write_text(json.dumps({"generated": "2026-09-25T05:00:00+01:00", "releases": [old]}), encoding="utf-8")
     assert main(["build", "--data", str(data), "--out", str(tmp_path / "dist")]) == 0
     html = (tmp_path / "dist" / "books" / "horror" / "index.html").read_text(encoding="utf-8")
-    assert "https://www.amazon.co.uk/dp/1529445280" in html
-    assert 'href="https://uk.bookshop.org/book/9781529445282"' in html
-    assert 'href="https://blackwells.co.uk/bookshop/product/9781529445282"' in html
-    assert 'href="https://www.waterstones.com/books/search/term/9781529445282"' in html
+    assert "/dp/" not in html and not re.search(r'href="[^"]*9781529445282', html)  # no link by ISBN
+    assert "https://www.amazon.co.uk/s?k=The+Thoroughbreds+Elin+Hilderbrand&amp;i=stripbooks&amp;tag=" in html
+    assert 'href="https://uk.bookshop.org/search?keywords=The+Thoroughbreds+Elin+Hilderbrand"' in html
 
 
-def test_about_page_says_which_links_go_straight_to_the_book(tmp_path):
+def test_about_page_says_every_link_is_a_search(tmp_path):
     render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
-    assert ("the Amazon, Bookshop.org and Blackwell&#39;s links go straight to the book's page, "
-            "and the Waterstones, Foyles and Hive links search for its ISBN") in about
+    assert "Every link opens a search" in about and "straight to the book" not in about
     assert "Amazon Music included" in about and "—" not in about
 
 

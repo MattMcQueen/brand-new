@@ -29,9 +29,9 @@
         <p>It doesn't show prices, and it can't tell you where something is cheapest.</p></li>
       <li><h3>It can't tell you who sells it or has it in stock</h3>
         <p>The site doesn't check any shop, so it doesn't know whether a shop sells a particular book or album, or has it in stock. Every link is a starting point, not a promise.</p></li>
-      <li class="wide"><h3>Most links open a search</h3>
-        <p>Album links, ebook and audiobook links (including Kindle and Audible), and links for books that aren't UK editions open a search on the shop's own site, for the title and author or artist. Those searches may find other editions, or nothing at all.</p>
-        <p>For books that are UK editions, going by the publisher and ISBN, the Amazon, {{ bookshops|selectattr("isbn_page")|names }} links go straight to the book's page, and the {{ bookshops|rejectattr("isbn_page")|names }} links search for its ISBN. Even then, the shop may not have it.</p></li>
+      <li class="wide"><h3>Every link opens a search</h3>
+        <p>Every shop link, Amazon included, opens a search on the shop's own site: for the title and author of a book, or the artist and title of an album. Those searches may find other editions, or nothing at all.</p>
+        <p>The links don't go straight to a book's page because the ISBN in the public data is often the ebook's, which a shop may not list, and the site doesn't check. A search finds whichever editions the shop sells.</p></li>
       <li><h3>Not every book comes in every format</h3>
         <p>Many books never come out as ebooks or audiobooks, or they arrive later, and the site can't tell which.</p></li>
       <li><h3>Dates change, and the lists aren't complete</h3>
@@ -57,7 +57,8 @@
     <h2 id="other-shops">Other shops</h2>
     <p>Not everyone wants to use Amazon, so every book also has an "Other shops" button, and every album a "Listen & buy" button.</p>
     <dl class="shop-groups">
-      <div><dt>Books</dt><dd>{{ chips(bookshops) }}</dd></div>
+      <div><dt>Books</dt><dd>{{ chips(bookshops) }}
+        <p>These open a search for the title and author, as the Amazon buttons do.</p></dd></div>
       <div><dt>Ebooks and audiobooks</dt><dd>{{ chips(digital_shops) }}
         <p>Not every book has an ebook or audiobook, so these open a search, as do the Kindle and Audible links.</p></dd></div>
       <div><dt>Streaming</dt><dd>{{ chips(streaming) }}

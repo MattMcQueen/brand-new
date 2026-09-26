@@ -19,7 +19,6 @@ class Release:
     publisher: str = ""
     info_url: str | None = None  # the source's own page for this release (Google Books requires one)
     popularity: int = 0       # ListenBrainz listener count (music only)
-    uk_edition: bool = False  # books: the ISBN is a UK edition, so shops can link straight to it
 
     def to_dict(self) -> dict:
         d = asdict(self)

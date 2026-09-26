@@ -7,29 +7,15 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 BASE = "https://www.amazon.co.uk"
 
 
-def isbn13_to_10(isbn13: str | None) -> str | None:
-    """978-prefixed ISBN-13 -> ISBN-10. 979 ISBNs have no ISBN-10."""
-    if not isbn13 or len(isbn13) != 13 or not isbn13.isdigit() or not isbn13.startswith("978"):
-        return None
-    core = isbn13[3:12]
-    total = sum((10 - i) * int(c) for i, c in enumerate(core))
-    check = (11 - total % 11) % 11
-    return core + ("X" if check == 10 else str(check))
-
-
 def search_url(query: str, department: str) -> str:
     return f"{BASE}/s?" + urlencode({"k": query, "i": department})
 
 
-def book_url(isbn13: str | None, title: str, author: str, direct: bool = True) -> str:
-    """Straight to the book page when we trust Amazon UK has this ISBN (`direct`), otherwise a
-    title + author search, which finds the UK edition or Kindle version and never dead-ends."""
-    isbn10 = isbn13_to_10(isbn13)
-    if direct and isbn10:
-        return f"{BASE}/dp/{isbn10}"
-    if not direct and title:
-        return search_url(_short_query(title, author), "stripbooks")
-    return search_url(isbn13 or f"{title} {author}", "stripbooks")
+def book_url(title: str, author: str) -> str:
+    """A title + author search, never a /dp/ page: Google Books often lists the ebook edition,
+    whose ISBN has no Amazon page (Kindle books go by Amazon's own IDs), and we can't check which
+    ISBNs Amazon has without contacting it. The search finds whichever editions Amazon UK sells."""
+    return search_url(_short_query(title, author), "stripbooks")
 
 
 def _short_query(title: str, author: str) -> str:

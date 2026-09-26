@@ -200,7 +200,7 @@ def _env(amazon_tag: str | None) -> Environment:
     ids = count(1)
     env.globals.update(config=config, genre_url=genre_url, countdown=countdown, cover_hue=cover_hue, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
                        other_shops=lambda r, today: shops.groups_for(
-                           r.kind, r.id, r.title, r.by, r.uk_edition,
+                           r.kind, r.title, r.by,
                            out_on=format_date(r.date) if r.kind == "music" and r.date > today else ""),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),

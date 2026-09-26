@@ -27,11 +27,14 @@ BLOCKED_PUBLISHERS = re.compile(
     r"crc press|emerald|sage publications|independently published|createspace", re.I)
 BLOCKED_TITLES = re.compile(
     r"\b(proceedings|handbook|companion to|study guide|summary of|analysis of|workbook|notebook|journal|"
-    r"colou?ring book|planner|sparknotes|cliffsnotes|anthology of criticism|box set)\b"
-    # monthly ebook bundles such as "Medical Romance December 2026 Books 1-4"
-    r"|\bbooks \d+\s*[-–]\s*\d+\b"
+    r"colou?ring book|planner|sparknotes|cliffsnotes|anthology of criticism)\b"
+    # monthly ebook bundles such as "Medical Romance December 2026"
     r"|\b(january|february|march|april|may|june|july|august|september|october|november|december) 20\d\d\b",
     re.I)
+# Repackaged series, e.g. "The Poppy Denby Investigates Boxset" subtitled "Books 1-3 in the
+# series", or "Medical Romance December 2026 Books 1-4": old books, often ebook-only. Checked
+# against the subtitle too, which is where "Books 1-3" often goes.
+BUNDLES = re.compile(r"\bbox[- ]?sets?\b|\bbooks \d+\s*[-–]\s*\d+\b", re.I)
 
 
 # Publisher marketing tacked onto titles: "Dark Waters: Now a major ITV Drama", "Die Famous: A Novel".
@@ -41,40 +44,11 @@ PLAIN_SUBTITLES = {"a novel", "a thriller", "a mystery", "a romance", "a novella
 IMPRINT = re.compile(r"\s*\((mills & boon|harlequin)[^)]*\)", re.I)
 
 
-# UK publishers and imprints. Their ISBNs are the UK editions, so Amazon UK has a page for them.
-# Anything else (often a US edition with a different ISBN) gets a search link instead of a
-# direct one, because a direct link to an ISBN Amazon UK doesn't stock is a dead end.
-UK_PUBLISHERS = re.compile(
-    r"\buk\b|hachette uk|little, brown book group|hodder|headline|orion|quercus|john murray|sphere|"
-    r"pan macmillan|bloomsbury|faber|canongate|bonnier|zaffre|boldwood|bookouture|embla|atlantic books|"
-    r"raven books|transworld|cornerstone|michael joseph|mills & boon|one more chapter|head of zeus|"
-    r"titan books|gollancz|jo fletcher|profile books|serpent's tail|sceptre|mantle|picador|"
-    r"simon & schuster uk|harpercollins uk|harper ?collins publishers ltd", re.I)
-
-
-# Google names some editions after a UK parent company that aren't UK editions, so the ISBN has to
-# agree. UK ISBNs start 978-0 or 978-1 (979-8 is the US, 978-93 India), and within those these
-# are US houses Google lists as "Hachette UK": Little, Brown and Company (0-316), Grand Central
-# (0-446, 1-4555, 1-5387).
-UK_ISBN_GROUPS = ("9780", "9781")
-US_REGISTRANTS = ("9780316", "9780446", "9781455", "9781538")
-
-
-def is_uk_edition(publisher: str | None, isbn: str | None) -> bool:
-    return bool(publisher and UK_PUBLISHERS.search(publisher) and isbn
-                and isbn.startswith(UK_ISBN_GROUPS) and not isbn.startswith(US_REGISTRANTS))
-
-
 def relink(releases: list[Release]) -> list[Release]:
-    """Re-decide each book's UK-edition flag and Amazon link from its ISBN and publisher, so data
-    saved by an older version (or before the flag existed) links the same way as fresh data."""
-    out = []
-    for r in releases:
-        if r.kind == "books":
-            uk = is_uk_edition(r.publisher, r.id)
-            r = replace(r, uk_edition=uk, amazon_url=amazon.book_url(r.id, r.title, r.by, direct=uk))
-        out.append(r)
-    return out
+    """Rebuild each book's Amazon link, so data saved by an older version (which linked some
+    books straight to an ISBN page) links the same way as fresh data."""
+    return [replace(r, amazon_url=amazon.book_url(r.title, r.by)) if r.kind == "books" else r
+            for r in releases]
 
 
 def clean_title(title: str, subtitle: str | None = None) -> str:
@@ -126,7 +100,10 @@ def exact_date(s: str | None) -> date | None:
 
 
 def is_noise(v: dict) -> bool:
-    if BLOCKED_PUBLISHERS.search(v.get("publisher") or "") or BLOCKED_TITLES.search(v.get("title") or ""):
+    title = v.get("title") or ""
+    if BLOCKED_PUBLISHERS.search(v.get("publisher") or "") or BLOCKED_TITLES.search(title):
+        return True
+    if BUNDLES.search(f"{title} {v.get('subtitle') or ''}"):
         return True
     cats = v.get("categories") or []
     return bool(cats) and not any("fiction" in c.lower() for c in cats)
@@ -144,12 +121,9 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
     by = ", ".join(v["authors"][:2])
     img = (v.get("imageLinks") or {}).get("thumbnail")
     cover = img.replace("http://", "https://").replace("&edge=curl", "") if img else None
-    uk = is_uk_edition(v.get("publisher"), isbn)
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
-                   amazon_url=amazon.book_url(isbn, title, by, direct=uk),
-                   genres=[genre], cover=cover,
-                   publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"),
-                   uk_edition=uk)
+                   amazon_url=amazon.book_url(title, by), genres=[genre], cover=cover,
+                   publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
 
 
 def _dedupe_key(r: Release) -> tuple[str, str]:
