@@ -32,11 +32,13 @@ concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: false
 
+# Every job names its Ubuntu version rather than ubuntu-latest, which moves to Ubuntu 26 from
+# 19 October 2026: moving to a new version is then a change made on purpose, not a surprise.
 jobs:
   # Scheduled runs only: is today's data already live? Anything else always runs. If the live
   # data can't be read (site down, bad JSON), the run goes ahead.
   due:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       run: ${{ steps.check.outputs.run }}
@@ -67,7 +69,7 @@ jobs:
   test:
     needs: due
     if: needs.due.outputs.run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -82,7 +84,7 @@ jobs:
   build:
     needs: test
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       FRESH: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.fetch) }}
@@ -167,4 +169,3 @@ jobs:
           action: upload
           app_location: dist
           skip_app_build: true
-          skip_api_build: true
