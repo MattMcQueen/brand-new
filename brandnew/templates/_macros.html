@@ -22,19 +22,17 @@
 {% macro card(r) -%}
 <li class="card" data-id="{{ r.id }}">
   <div class="cover cover-{{ r.kind }}">
-    {# Albums: a record slides out of the sleeve on hover (CSS) #}
+    {# Albums: a record slides out of the sleeve on hover (CSS). With no cover (or one that won't
+       load) the record is shown on its own instead. #}
     {% if r.kind == "music" %}<span class="vinyl" aria-hidden="true"></span>{% endif %}
-    {# A made-up cover with the title on it, shown when there's no cover or it fails to load (app.js) #}
-    <span class="made-cover made-cover-{{ r.kind }} hue-{{ cover_hue(r) }}" aria-hidden="true">
+    {# Books: a made-up cover with the title on it, shown when there's no cover or it fails to load (early.js) #}
     {% if r.kind == "books" %}
+    <span class="made-cover made-cover-books hue-{{ cover_hue(r) }}" aria-hidden="true">
       <span class="mc-band">{{ config.SITE_NAME }}</span>
       <span class="mc-panel"><span class="mc-title">{{ r.title }}</span><span class="mc-by">{{ r.by }}</span></span>
       <span class="mc-band"><span class="mc-emblem"></span></span>
-    {% else %}
-      <span class="mc-label">{{ config.SITE_NAME }}</span>
-      <span class="mc-title">{{ r.title }}</span><span class="mc-by">{{ r.by }}</span>
-    {% endif %}
     </span>
+    {% endif %}
     {% if r.cover %}
     <img src="{{ r.cover }}"{% if r.cover_2x %} srcset="{{ r.cover }} 1x, {{ r.cover_2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     {% endif %}
