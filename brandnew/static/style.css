@@ -196,7 +196,6 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   .card { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; }
 }
 .card > :not(.cover) { padding: 0 12px; }
-.card-title { padding-top: 12px !important; }
 .card-source { padding-bottom: 12px !important; }
 .card-buy { margin-top: auto; }  /* keeps the button at the bottom without subgrid too */
 /* The panel colour shows behind a cover while it loads, and around it as it turns or slides aside on hover */
@@ -247,8 +246,10 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 }
 .made-cover-books .mc-title { font: 1rem/1.2 var(--serif); -webkit-line-clamp: 4; line-clamp: 4; }
 .made-cover-books .mc-by { color: var(--mc1); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; -webkit-line-clamp: 2; line-clamp: 2; }
+/* The gap above the title is margin, not padding: WebKit (every iPhone browser, Edge included)
+   sizes a clamped box by its lines alone, so padding pushed the third line half out of sight. */
 .card-title {
-  font-size: 1.1rem; line-height: 1.2; margin: 0; overflow-wrap: anywhere;
+  font-size: 1.1rem; line-height: 1.2; margin: 12px 0 0; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
 }
 .card-by, .card-date, .card-tags { margin: 0; }
