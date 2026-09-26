@@ -8,11 +8,13 @@ TODAY = date(2026, 9, 25)
 
 
 def item(title="A Novel", days=0, isbn="9780306406157", cats=("Fiction",), publisher="HarperCollins UK", date_str=None,
-         lang="en", thumb="http://books.google.com/x?id=1&edge=curl", authors=("Ann Author",)):
+         lang="en", thumb="http://books.google.com/x?id=1&edge=curl", authors=("Ann Author",), subtitle=None):
     ids = [{"type": "ISBN_13", "identifier": isbn}] if isbn else []
     v = {"title": title, "authors": list(authors), "publisher": publisher, "language": lang,
          "publishedDate": date_str or (TODAY + timedelta(days=days)).isoformat(),
          "industryIdentifiers": ids, "infoLink": "https://books.google.co.uk/books?id=1"}
+    if subtitle:
+        v["subtitle"] = subtitle
     if cats is not None:
         v["categories"] = list(cats)
     if thumb:
@@ -23,7 +25,7 @@ def item(title="A Novel", days=0, isbn="9780306406157", cats=("Fiction",), publi
 def test_to_release():
     r = gb.to_release(item(days=3), "horror", TODAY)
     assert r.id == "9780306406157" and r.genres == ["horror"]
-    assert r.amazon_url == "https://www.amazon.co.uk/dp/0306406152"
+    assert r.amazon_url == "https://www.amazon.co.uk/s?k=A+Novel+Ann+Author&i=stripbooks"
     assert r.cover == "https://books.google.com/x?id=1"
     assert r.info_url.startswith("https://books.google.co.uk/")
 
@@ -38,6 +40,9 @@ def test_to_release():
     dict(title="Study Guide to Some Novel"),
     dict(title="Harlequin Intrigue November 2026 - Box Set 1 of 2"),
     dict(title="Medical Romance December 2026 Books 1-4: Midwife's Baby"),
+    dict(title="The Poppy Denby Investigates Boxset", subtitle="Books 1-3 in the beloved series"),
+    dict(title="The Fenwick Mysteries Box-Set"),
+    dict(title="Murder at the Manor", subtitle="Books 4 - 6"),
     dict(authors=()),
 ])
 def test_rejects(kw):
@@ -58,12 +63,14 @@ def test_clean_title(title, subtitle, expected):
     assert gb.clean_title(title, subtitle) == expected
 
 
-def test_amazon_link_direct_only_for_uk_publishers():
-    uk = gb.to_release(item("Night: A Ghost Story", publisher="Hachette UK"), "horror", TODAY)
-    us = gb.to_release(item("Night: A Ghost Story", publisher="Ballantine Books", authors=("Ann Author", "Bo B")),
-                       "horror", TODAY)
-    assert uk.amazon_url == "https://www.amazon.co.uk/dp/0306406152"
-    assert us.amazon_url == "https://www.amazon.co.uk/s?k=Night+Ann+Author&i=stripbooks"
+def test_amazon_link_is_a_search_whoever_the_publisher():
+    for publisher in ("Hachette UK", "Ballantine Books", "Embla Books"):
+        r = gb.to_release(item("Night: A Ghost Story", publisher=publisher, authors=("Ann Author", "Bo B")), "horror", TODAY)
+        assert r.amazon_url == "https://www.amazon.co.uk/s?k=Night+Ann+Author&i=stripbooks"
+
+
+def test_subtitles_can_be_ordinary():
+    assert gb.to_release(item("Zone", subtitle="Book Three of the Meiji Trilogy"), "horror", TODAY) is not None
 
 
 def test_no_categories_is_allowed():
@@ -142,32 +149,13 @@ def test_failed_genre_is_skipped(key):
     assert "crime-thrillers" not in genres and "literary-fiction" in genres
 
 
-def test_uk_edition_flag():
-    assert gb.to_release(item(publisher="Pan Macmillan"), "horror", TODAY).uk_edition
-    assert not gb.to_release(item(publisher="Berkley"), "horror", TODAY).uk_edition
-
-
-@pytest.mark.parametrize("isbn,publisher,uk", [
-    ("9781529445282", "Hachette UK", True),
-    ("9780316535984", "Hachette UK", False),    # Little, Brown and Company (US): Die Famous
-    ("9789357317511", "Hachette UK", False),    # Hachette India
-    ("9798260200384", "Raven Books", False),    # 979-8 is a US range
-    ("9781529445282", "Berkley", False),
-    (None, "Hachette UK", False),
-])
-def test_uk_edition_needs_a_uk_publisher_and_isbn(isbn, publisher, uk):
-    assert gb.is_uk_edition(publisher, isbn) is uk
-
-
-def test_relink_fixes_data_saved_before_the_rules():
-    from brandnew import shops
+def test_relink_turns_older_isbn_links_into_searches():
     from brandnew.models import Release
     old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
-           "date": "2026-10-01", "source": "google-books", "publisher": "Hachette UK",
-           "amazon_url": "https://www.amazon.co.uk/s?k=9781529445282&i=stripbooks"}  # no uk_edition field
-    us = old | {"id": "9780316535984", "title": "Die Famous", "amazon_url": "https://www.amazon.co.uk/dp/0316535982"}
-    uk_book, us_book = gb.relink([Release.from_dict(old), Release.from_dict(us)])
-    assert uk_book.uk_edition and uk_book.amazon_url == "https://www.amazon.co.uk/dp/1529445280"
-    links = dict(shops.book_links(uk_book.id, uk_book.title, uk_book.by, uk_book.uk_edition))
-    assert links["Bookshop.org"] == "https://uk.bookshop.org/book/9781529445282"
-    assert not us_book.uk_edition and us_book.amazon_url == "https://www.amazon.co.uk/s?k=Die+Famous+Elin+Hilderbrand&i=stripbooks"
+           "date": "2026-10-01", "source": "google-books", "publisher": "Hachette UK", "uk_edition": True,
+           "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}  # saved by an older version
+    album = {"kind": "music", "id": "m", "title": "A", "by": "B", "date": "2026-10-01", "source": "listenbrainz",
+             "amazon_url": "https://www.amazon.co.uk/s?k=B+A&i=popular"}
+    book, same_album = gb.relink([Release.from_dict(old), Release.from_dict(album)])
+    assert book.amazon_url == "https://www.amazon.co.uk/s?k=The+Thoroughbreds+Elin+Hilderbrand&i=stripbooks"
+    assert same_album.amazon_url == album["amazon_url"]

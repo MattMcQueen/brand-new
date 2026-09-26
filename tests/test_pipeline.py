@@ -43,5 +43,5 @@ def test_normal_day_uses_fresh(previous):
 def test_old_data_with_removed_fields_still_loads():
     from brandnew.models import Release
     r = Release.from_dict({"kind": "books", "id": "1", "title": "T", "by": "B", "date": "2026-09-25",
-                           "source": "google-books", "amazon_url": "u", "note": ""})
-    assert r.title == "T" and not r.uk_edition
+                           "source": "google-books", "amazon_url": "u", "note": "", "uk_edition": True})
+    assert r.title == "T" and not hasattr(r, "uk_edition")

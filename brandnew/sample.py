@@ -11,10 +11,11 @@ def releases(today: date) -> list[Release]:
     for g in config.BOOK_GENRES:
         for i, off in enumerate(offsets):
             isbn = f"978000000{i:03d}{ord(g.slug[0]) % 10}"
+            title = f"Sample {g.name.lower()} book {i + 1}"
             out.append(Release(
-                kind="books", id=isbn, title=f"Sample {g.name.lower()} book {i + 1}", by="A. N. Author",
+                kind="books", id=isbn, title=title, by="A. N. Author",
                 date=today + timedelta(days=off), source="sample",
-                amazon_url=amazon.book_url(isbn, "", ""), genres=[g.slug], publisher="Sample Press"))
+                amazon_url=amazon.book_url(title, "A. N. Author"), genres=[g.slug], publisher="Sample Press"))
     for g in config.MUSIC_GENRES:
         for i, off in enumerate(offsets):
             artist = f"The Sample {g.name}s"

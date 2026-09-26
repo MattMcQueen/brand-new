@@ -1,18 +1,12 @@
 from brandnew import shops
 
 
-def test_uk_edition_links_straight_to_the_book():
-    links = dict(shops.book_links("9781405975735", "The Impossible Fortune", "Richard Osman", uk_edition=True))
+def test_bookshops_search_by_title_and_first_author():
+    links = dict(shops.book_links("Night: A Thriller", "Ann Author, Bob Writer"))
     assert list(links) == ["Waterstones", "Bookshop.org", "Foyles", "Blackwell's", "Hive"]
-    assert links["Bookshop.org"] == "https://uk.bookshop.org/book/9781405975735"
-    assert links["Blackwell's"] == "https://blackwells.co.uk/bookshop/product/9781405975735"
-    assert all("9781405975735" in url for url in links.values())
-
-
-def test_other_editions_search_by_title_and_first_author():
-    links = dict(shops.book_links("9780000000002", "Night: A Thriller", "Ann Author, Bob Writer", uk_edition=False))
     assert links["Waterstones"] == "https://www.waterstones.com/books/search/term/Night+Ann+Author"
-    assert all("Night+Ann+Author" in url and "978" not in url for url in links.values())
+    assert links["Bookshop.org"] == "https://uk.bookshop.org/search?keywords=Night+Ann+Author"
+    assert all("Night+Ann+Author" in url for url in links.values())
 
 
 def test_album_links_search_artist_and_title():
@@ -29,15 +23,15 @@ def test_digital_links_are_searches_and_spotify_uses_a_path():
 
 
 def test_groups_for_books_and_albums():
-    books = shops.groups_for("books", "9781405975735", "T", "A", uk_edition=True)
+    books = shops.groups_for("books", "T", "A")
     assert [g.heading for g in books] == ["Bookshops", "Ebooks & audiobooks"]
     assert books[1].note and all(formats for _, _, formats in books[1].links)
-    music = shops.groups_for("music", "mbid", "T", "A", uk_edition=False)
+    music = shops.groups_for("music", "T", "A")
     assert [g.heading for g in music] == ["Listen", "Record shops"] and not any(g.note for g in music)
 
 
 def test_upcoming_album_puts_record_shops_first_with_a_dated_note():
-    music = shops.groups_for("music", "mbid", "T", "A", uk_edition=False, out_on="Fri 2 Oct 2026")
+    music = shops.groups_for("music", "T", "A", out_on="Fri 2 Oct 2026")
     assert [g.heading for g in music] == ["Record shops", "Listen"]
     assert music[1].note == "Out on Fri 2 Oct 2026. Until then you may only find singles, or a pre-save."
     assert not music[0].note
@@ -49,9 +43,3 @@ def test_listen_links_search_artist_and_title():
     assert links["Spotify"] == "https://open.spotify.com/search/Neil%20Young%20%26%20The%20Chrome%20Hearts%20Second%20Song/albums"
     assert links["Bandcamp"] == "https://bandcamp.com/search?q=Neil+Young+%26+The+Chrome+Hearts+Second+Song&item_type=a"
 
-
-def test_only_some_isbn_links_are_the_books_own_page():
-    pages = [s.name for s in shops.BOOKSHOPS if s.isbn_page]
-    assert pages == ["Bookshop.org", "Blackwell's"]
-    for s in shops.BOOKSHOPS:
-        assert ("search" in s.by_isbn.lower()) is not s.isbn_page

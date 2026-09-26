@@ -1,6 +1,6 @@
 """Links to other UK bookshops and record shops, for people who'd rather not use Amazon.
 
-Plain links built from the ISBN or a search, never fetched. None of them
+Plain search links, never fetched. None of them
 earn anything; if an affiliate scheme is joined later, its code goes into the link here.
 """
 from dataclasses import dataclass
@@ -11,8 +11,6 @@ from urllib.parse import quote, quote_plus
 class Shop:
     name: str
     search: str     # "{q}" is replaced with the search words, url-encoded ("{qp}": encoded for a path)
-    by_isbn: str = ""  # books: "{isbn}" is replaced
-    isbn_page: bool = False  # by_isbn is the book's own page, not a search for the ISBN
     formats: str = ""  # shown next to the name, e.g. "ebooks & audiobooks"
 
 
@@ -23,17 +21,14 @@ class Group:
     note: str = ""
 
 
+# Title + author searches, like the Amazon links: the ISBN we have is often the ebook's, which
+# a bookshop's product page wouldn't know.
 BOOKSHOPS = (
-    Shop("Waterstones", "https://www.waterstones.com/books/search/term/{q}",
-         by_isbn="https://www.waterstones.com/books/search/term/{isbn}"),
-    Shop("Bookshop.org", "https://uk.bookshop.org/search?keywords={q}",
-         by_isbn="https://uk.bookshop.org/book/{isbn}", isbn_page=True),
-    Shop("Foyles", "https://www.foyles.co.uk/search?term={q}",
-         by_isbn="https://www.foyles.co.uk/search?term={isbn}"),
-    Shop("Blackwell's", "https://blackwells.co.uk/bookshop/search/?keyword={q}",
-         by_isbn="https://blackwells.co.uk/bookshop/product/{isbn}", isbn_page=True),
-    Shop("Hive", "https://www.hive.co.uk/Search/Keyword?keyword={q}",
-         by_isbn="https://www.hive.co.uk/Search/Keyword?keyword={isbn}"),
+    Shop("Waterstones", "https://www.waterstones.com/books/search/term/{q}"),
+    Shop("Bookshop.org", "https://uk.bookshop.org/search?keywords={q}"),
+    Shop("Foyles", "https://www.foyles.co.uk/search?term={q}"),
+    Shop("Blackwell's", "https://blackwells.co.uk/bookshop/search/?keyword={q}"),
+    Shop("Hive", "https://www.hive.co.uk/Search/Keyword?keyword={q}"),
 )
 
 # Ebooks and audiobooks have their own ISBNs, and not every book has them, so these are
@@ -78,12 +73,8 @@ def _searches(shops: tuple[Shop, ...], words: str) -> list[tuple[str, str]]:
     return [(s.name, s.search.format(q=quote_plus(words), qp=quote(words))) for s in shops]
 
 
-def book_links(isbn: str | None, title: str, by: str, uk_edition: bool) -> list[tuple[str, str]]:
-    """(shop name, url) pairs. Like the Amazon links, a UK edition is looked up by its ISBN (the
-    book's own page where the shop has one, see isbn_page), anything else by title + author,
-    because shops only know the edition they sell."""
-    if uk_edition and isbn:
-        return [(s.name, s.by_isbn.format(isbn=isbn)) for s in BOOKSHOPS]
+def book_links(title: str, by: str) -> list[tuple[str, str]]:
+    """(shop name, url) pairs."""
     return _searches(BOOKSHOPS, _book_query(title, by))
 
 
@@ -103,11 +94,11 @@ def _group(heading: str, shops: tuple[Shop, ...], links: list[tuple[str, str]], 
     return Group(heading, [(name, url, s.formats) for s, (name, url) in zip(shops, links)], note)
 
 
-def groups_for(kind: str, id_: str, title: str, by: str, uk_edition: bool, out_on: str = "") -> list[Group]:
+def groups_for(kind: str, title: str, by: str, out_on: str = "") -> list[Group]:
     """What the "Other shops" popover lists for a release. `out_on` is the date (as the site shows
     it) of an album that isn't out yet: its record shops come first, as they can take pre-orders."""
     if kind == "books":
-        return [_group("Bookshops", BOOKSHOPS, book_links(id_, title, by, uk_edition)),
+        return [_group("Bookshops", BOOKSHOPS, book_links(title, by)),
                 _group("Ebooks & audiobooks", DIGITAL_SHOPS, digital_links(title, by), DIGITAL_NOTE)]
     listen = _group("Listen", STREAMING, listen_links(by, title), UPCOMING_NOTE.format(date=out_on) if out_on else "")
     buy = _group("Record shops", RECORD_SHOPS, album_links(by, title))
