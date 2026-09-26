@@ -32,3 +32,9 @@ def test_cover_hosts_are_allowed():
 
 def test_files_are_not_redirected_to_slashed_addresses():
     assert hosting.config()["trailingSlash"] == "auto"
+
+
+def test_old_sf_fantasy_page_redirects_to_fantasy():
+    [route] = [r for r in hosting.config()["routes"] if "redirect" in r]
+    assert route == {"route": "/books/sf-fantasy*", "redirect": "/books/fantasy/", "statusCode": 301}
+    assert hosting.headers_for("/books/sf-fantasy/")["Cache-Control"] == hosting.PAGE_CACHE  # no headers of its own

@@ -8,6 +8,7 @@ from brandnew.models import Release
 from brandnew.ukdates import UK, format_date, format_updated
 
 TODAY = date(2026, 9, 25)
+HORROR = next(g for g in BOOK_GENRES if g.slug == "horror")
 
 
 def book(days: int, genre="horror", title="T") -> Release:
@@ -16,7 +17,7 @@ def book(days: int, genre="horror", title="T") -> Release:
 
 
 def test_windows():
-    horror = BOOK_GENRES[3]
+    horror = HORROR
     page = render.genre_page(horror, [book(-8), book(-3), book(0), book(1), book(90), book(91),
                                       book(-3, genre="romance")], TODAY)
     assert page.past_days == 7
@@ -26,7 +27,7 @@ def test_windows():
 
 
 def test_falls_back_to_two_weeks_when_last_week_is_empty():
-    page = render.genre_page(BOOK_GENRES[3], [book(-10), book(-15)], TODAY)
+    page = render.genre_page(HORROR, [book(-10), book(-15)], TODAY)
     assert page.past_days == 14
     assert len(page.past) == 1
 
@@ -277,7 +278,7 @@ def test_structured_data(tmp_path):
 def test_structured_data_cant_break_out_of_script():
     r = Release(kind="books", id="9780306406157", title="</script><script>alert(1)</script>", by="X, Y & Z",
                 date=TODAY, source="test", amazon_url="https://www.amazon.co.uk/dp/0306406152", genres=["horror"])
-    page = render.genre_page(BOOK_GENRES[3], [r], TODAY)
+    page = render.genre_page(HORROR, [r], TODAY)
     text = str(render.json_ld(render.genre_ld(page)))
     assert "<" not in text and ">" not in text and "&" not in text
     item = json.loads(text)[0]["mainEntity"]["itemListElement"][0]["item"]
