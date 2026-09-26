@@ -1,7 +1,7 @@
 """New and upcoming books from the Google Books API.
 
 Only queries with a year in them respect orderBy=newest, and each query stops at roughly 150
-results, so every genre runs several variations of subject:"fiction / <genre>" <year> and keeps
+results, so every genre runs several variations of subject:"<subject>" <year> and keeps
 books with an exact publication date inside the window.
 """
 import os
@@ -31,6 +31,8 @@ BLOCKED_TITLES = re.compile(
     # monthly ebook bundles such as "Medical Romance December 2026"
     r"|\b(january|february|march|april|may|june|july|august|september|october|november|december) 20\d\d\b",
     re.I)
+# Fiction categories: "Fiction", "Juvenile Fiction", "Young Adult Fiction", but not "Juvenile Nonfiction"
+FICTION = re.compile(r"\bfiction\b", re.I)
 # Repackaged series, e.g. "The Poppy Denby Investigates Boxset" subtitled "Books 1-3 in the
 # series", or "Medical Romance December 2026 Books 1-4": old books, often ebook-only. Checked
 # against the subtitle too, which is where "Books 1-3" often goes.
@@ -77,15 +79,16 @@ VARIATIONS = ("", "novel", "paperback", "hardcover", "ebook", "book 1", "series"
 
 
 # Google Books allows 1,000 calls a day per project and won't raise it. Each run stays well
-# under that so a second run (or a local test) the same day still has room.
-MAX_CALLS = 400
+# under that so a second run (or a local test) the same day still has room. Shared equally
+# between the book genres (seven: about 64 calls each).
+MAX_CALLS = 450
 
 
 def query_plan(terms: tuple[str, ...], today: date) -> list[tuple[str, str]]:
     """(variation, query) pairs, most useful first."""
     start, end = fetch_window(today)
     years = sorted({start.year, end.year})
-    return [(v, f'subject:"fiction / {t}" {y} {v}'.strip()) for y in years for v in VARIATIONS for t in terms]
+    return [(v, f'subject:"{t}" {y} {v}'.strip()) for y in years for v in VARIATIONS for t in terms]
 
 
 def queries(terms: tuple[str, ...], today: date) -> list[str]:
@@ -106,7 +109,7 @@ def is_noise(v: dict) -> bool:
     if BUNDLES.search(f"{title} {v.get('subtitle') or ''}"):
         return True
     cats = v.get("categories") or []
-    return bool(cats) and not any("fiction" in c.lower() for c in cats)
+    return bool(cats) and not any(FICTION.search(c) for c in cats)
 
 
 def to_release(item: dict, genre: str, today: date) -> Release | None:

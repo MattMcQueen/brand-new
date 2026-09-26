@@ -23,22 +23,26 @@ class Genre:
     slug: str
     name: str
     kind: str  # "books" or "music"
-    # books: Google Books "fiction / ..." subject headings; music: patterns matched against MusicBrainz genres/tags
+    # books: Google Books subject headings, e.g. "fiction / horror"; music: patterns matched against
+    # MusicBrainz genres/tags
     terms: tuple[str, ...] = field(default=())
     blurb: str = ""
 
 
 BOOK_GENRES = (
-    Genre("crime-thrillers", "Crime & thrillers", "books", ("thrillers", "mystery & detective", "crime"),
+    Genre("crime-thrillers", "Crime & thrillers", "books",
+          ("fiction / thrillers", "fiction / mystery & detective", "fiction / crime"),
           "Detectives, heists, spies and page-turners."),
-    Genre("sf-fantasy", "Science fiction & fantasy", "books", ("science fiction", "fantasy"),
+    Genre("sf-fantasy", "Science fiction & fantasy", "books", ("fiction / science fiction", "fiction / fantasy"),
           "Other worlds, futures and magic."),
-    Genre("romance", "Romance", "books", ("romance",), "Love stories of every kind."),
-    Genre("horror", "Horror", "books", ("horror",), "Ghosts, monsters and dread."),
-    Genre("historical-fiction", "Historical fiction", "books", ("historical",),
+    Genre("romance", "Romance", "books", ("fiction / romance",), "Love stories of every kind."),
+    Genre("horror", "Horror", "books", ("fiction / horror",), "Ghosts, monsters and dread."),
+    Genre("historical-fiction", "Historical fiction", "books", ("fiction / historical",),
           "Stories set in the past."),
-    Genre("literary-fiction", "Literary fiction", "books", ("literary",),
+    Genre("literary-fiction", "Literary fiction", "books", ("fiction / literary",),
           "Prize contenders and book-club picks."),
+    Genre("childrens", "Children's", "books", ("juvenile fiction",),
+          "Picture books, first chapter books and middle-grade adventures."),
 )
 
 MUSIC_GENRES = (
