@@ -140,7 +140,7 @@ def test_quota_exhausted_keeps_what_was_found(key):
     books = gb.fetch(TODAY, get_json=api)
     assert len(books) == 99
     assert api.calls == 100  # stopped at the first quota error, no retries or later genres
-    assert {g for b in books for g in b.genres} == {"crime-thrillers", "fantasy", "science-fiction"}
+    assert {g for b in books for g in b.genres} == {"crime-thrillers", "childrens", "romance"}  # most popular first
 
 
 def test_quota_exhausted_with_nothing_found_raises(key):

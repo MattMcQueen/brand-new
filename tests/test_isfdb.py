@@ -81,7 +81,7 @@ def test_months_in_window_puts_this_month_first():
 def test_genres_from_google_subjects_or_isfdb_tags():
     assert isfdb.genres_for(["Fiction / Science Fiction / Space Opera"], [], "adult") == ["science-fiction"]
     assert isfdb.genres_for(["Fiction / Fantasy / Urban", "Fiction / Romance / Paranormal"], [], "adult") == \
-        ["fantasy", "romance"]
+        ["romance", "fantasy"]
     assert isfdb.genres_for(["Juvenile Fiction / Fantasy & Magic"], [], "ya") == ["childrens"]
     assert isfdb.genres_for(["Young Adult Fiction / Fantasy / Epic"], [], "ya") == []  # no YA genre
     assert isfdb.genres_for([], ["science fiction", "hard sf"], "adult") == ["science-fiction"]
