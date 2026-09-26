@@ -15,6 +15,9 @@ on:
     - cron: "17 8 * * *"
     - cron: "47 10 * * *"
     - cron: "17 14 * * *"
+    # TEMPORARY (26 Sept 2026): every 15 minutes, to test whether GitHub fires this schedule at all.
+    # Each run stops in the "due" job, since today's data is already live. Remove after the test.
+    - cron: "7,22,37,52 * * * *"
   push:
     branches: [main]
   pull_request:
