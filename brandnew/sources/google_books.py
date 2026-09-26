@@ -52,15 +52,29 @@ RENAMED_GENRES = {"sf-fantasy": "fantasy"}
 
 
 def relink(releases: list[Release]) -> list[Release]:
-    """Rebuild each book's Amazon link and update renamed genres, so data saved by an older
-    version (which linked some books straight to an ISBN page) works like fresh data."""
+    """Rebuild each book's Amazon link and covers and update renamed genres, so data saved by an
+    older version (which linked some books straight to an ISBN page, and used small covers) works
+    like fresh data."""
     out = []
     for r in releases:
         if r.kind == "books":
             genres = list(dict.fromkeys(RENAMED_GENRES.get(s, s) for s in r.genres))
-            r = replace(r, amazon_url=amazon.book_url(r.title, r.by), genres=genres)
+            cover, cover_2x = covers(r.cover)
+            r = replace(r, amazon_url=amazon.book_url(r.title, r.by), genres=genres, cover=cover, cover_2x=cover_2x)
         out.append(r)
     return out
+
+
+def covers(img: str | None) -> tuple[str | None, str | None]:
+    """A book's cover for ordinary and sharp (2x) screens. The thumbnail Google names is only
+    128 pixels wide, which looks blurred on a card; its fife=w<width> setting gives a bigger copy
+    of the same image (or the biggest it has)."""
+    if not img:
+        return None, None
+    base = re.sub(r"&fife=w\d+", "", img.replace("http://", "https://").replace("&edge=curl", ""))
+    if "books.google." not in base:
+        return base, None
+    return f"{base}&fife=w300", f"{base}&fife=w600"
 
 
 def clean_title(title: str, subtitle: str | None = None) -> str:
@@ -132,10 +146,9 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
         return None
     title = clean_title(v["title"], v.get("subtitle"))
     by = ", ".join(v["authors"][:2])
-    img = (v.get("imageLinks") or {}).get("thumbnail")
-    cover = img.replace("http://", "https://").replace("&edge=curl", "") if img else None
+    cover, cover_2x = covers((v.get("imageLinks") or {}).get("thumbnail"))
     return Release(kind="books", id=isbn, title=title, by=by, date=d, source="google-books",
-                   amazon_url=amazon.book_url(title, by), genres=[genre], cover=cover,
+                   amazon_url=amazon.book_url(title, by), genres=[genre], cover=cover, cover_2x=cover_2x,
                    publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
 
 

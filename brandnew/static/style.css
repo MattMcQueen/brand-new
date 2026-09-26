@@ -204,6 +204,11 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .cover-music { aspect-ratio: 1; }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cover img.is-retrying { visibility: hidden; }  /* the made-up cover or the record shows while it tries again (early.js) */
+/* A cover that's a very different shape (early.js) is shown whole, centred on the panel colour.
+   A book's pages (below) take the same shape, from --shape (its height / width), so when it turns
+   the pages still meet the cover. */
+.cover.is-wide img { height: auto; margin: auto 0; }
+.cover.is-tall img { width: auto; margin: 0 auto; }
 /* Made-up covers, for books with no cover (or one that won't load): a classic paperback. The
    colours come from the book (hue-0..7). Albums without a cover show just the record. */
 .hue-0 { --mc1: #c2410c; --mc2: #f59e0b; }
@@ -223,6 +228,8 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
               repeating-linear-gradient(to right, #f6f1e7 0 6px, #cfc6b4 6px 9px);
   transition: transform .35s ease, opacity .35s ease;
 }
+.cover-books.is-wide::before { inset: 0; height: calc(97% * var(--shape) / 1.5); margin: auto 0; }
+.cover-books.is-tall::before { inset: 0; height: 97%; width: calc(100% * 1.5 / var(--shape)); margin: auto; }
 .made-cover {
   position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; overflow: hidden;
   background: var(--mc1); transition: transform .35s ease;

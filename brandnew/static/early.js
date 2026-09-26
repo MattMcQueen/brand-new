@@ -23,6 +23,20 @@ document.addEventListener("error", function (e) {
   img.removeAttribute("srcset");  // retry the size the browser chose, and only that
   img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "retry=" + (tries + 1);  // not a cached failure
 }, true);
+// 3. A card's cover fills its box, trimming the edges. A cover that's a very different shape (a
+//    landscape picture book, a square box set) would lose too much, so it's shown whole instead,
+//    and a book's pages take its shape so it still turns as one book (style.css). Setting --shape
+//    from a script is allowed by the Content Security Policy (only style="" in the HTML isn't).
 document.addEventListener("load", function (e) {
-  if (e.target.classList && e.target.classList.contains("is-retrying")) e.target.classList.remove("is-retrying");
+  var img = e.target, box, shape, boxShape;
+  if (!img.classList) return;
+  img.classList.remove("is-retrying");
+  box = img.closest && img.closest(".cover");
+  if (!box || !img.naturalWidth || !box.clientWidth) return;
+  shape = img.naturalHeight / img.naturalWidth;
+  boxShape = box.clientHeight / box.clientWidth;
+  if (Math.abs(shape / boxShape - 1) > 0.15) {
+    box.classList.add(shape < boxShape ? "is-wide" : "is-tall");
+    box.style.setProperty("--shape", shape);
+  }
 }, true);
