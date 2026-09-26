@@ -78,10 +78,17 @@ def test_no_categories_is_allowed():
 
 
 def test_queries_cover_next_year_near_year_end():
-    q = gb.queries(("horror",), TODAY)
+    q = gb.queries(("fiction / horror",), TODAY)
     assert q[:2] == ['subject:"fiction / horror" 2026', 'subject:"fiction / horror" 2026 novel']
     assert len(q) == len(gb.VARIATIONS) and not any("2027" in x for x in q)
-    assert 'subject:"fiction / horror" 2027' in gb.queries(("horror",), date(2026, 11, 1))
+    assert 'subject:"fiction / horror" 2027' in gb.queries(("fiction / horror",), date(2026, 11, 1))
+
+
+def test_childrens_books_use_their_own_subject():
+    childrens = next(g for g in gb.config.BOOK_GENRES if g.slug == "childrens")
+    assert gb.queries(childrens.terms, TODAY)[0] == 'subject:"juvenile fiction" 2026'
+    assert gb.to_release(item(cats=("Juvenile Fiction",)), "childrens", TODAY) is not None
+    assert gb.to_release(item(cats=("Juvenile Nonfiction",)), "childrens", TODAY) is None
 
 
 def test_merge_editions_and_genres():
