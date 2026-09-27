@@ -8,6 +8,8 @@ BASE = "https://www.amazon.co.uk"
 # Associates' landing page for an Amazon Music Unlimited free trial, which pays a fixed fee per
 # trial started from it (Prime members included). Amazon redirects it to /music/unlimited, tag kept.
 MUSIC_UNLIMITED_URL = f"{BASE}/unlimited"
+# The same for a 30-day Kindle Unlimited free trial. Amazon redirects it to its sign-up page, tag kept.
+KINDLE_UNLIMITED_URL = f"{BASE}/kindle-dbs/hz/signup"
 
 
 def search_url(query: str, department: str) -> str:

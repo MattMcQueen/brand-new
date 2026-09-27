@@ -199,6 +199,28 @@ def genre_ld(page: GenrePage) -> list[dict]:
                                      (g.name, page.url))]
 
 
+@dataclass(frozen=True)
+class Trial:
+    """A free-trial affiliate line under one of the pop-up's groups of links."""
+    name: str
+    intro: str
+    link: str
+    url: str
+
+
+def trials(amazon_tag: str | None) -> dict[str, Trial]:
+    """The trial lines, by the heading of the group they go under. None without a tag: they
+    couldn't earn anything."""
+    if not amazon_tag:
+        return {}
+    return {
+        "Ebooks & audiobooks": Trial("Kindle Unlimited", "Some books are free to read with Kindle Unlimited.",
+                                     "Try it free for 30 days", amazon.with_tag(amazon.KINDLE_UNLIMITED_URL, amazon_tag)),
+        "Listen": Trial("Amazon Music Unlimited", "Amazon Music Unlimited has every new release.",
+                        "Try it free", amazon.with_tag(amazon.MUSIC_UNLIMITED_URL, amazon_tag)),
+    }
+
+
 def _env(amazon_tag: str | None) -> Environment:
     env = Environment(loader=PackageLoader("brandnew", "templates"),
                       autoescape=select_autoescape(["html", "xml"]),
@@ -215,8 +237,7 @@ def _env(amazon_tag: str | None) -> Environment:
                            out_on=format_date(r.date) if r.kind == "music" and r.date > today else ""),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
-                       # Without a tag the trial line couldn't earn anything, so it's left out
-                       music_trial=amazon.with_tag(amazon.MUSIC_UNLIMITED_URL, amazon_tag) if amazon_tag else "",
+                       trials=trials(amazon_tag),
                        bookshops=shops.BOOKSHOPS, digital_shops=shops.DIGITAL_SHOPS, record_shops=shops.RECORD_SHOPS,
                        streaming=shops.STREAMING, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env

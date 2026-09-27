@@ -467,17 +467,45 @@ def test_covers_offer_sizes_so_the_browser_loads_the_smallest_sharp_one(tmp_path
 def test_albums_offer_a_music_unlimited_trial_under_the_streaming_links(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
     music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
-    trials = re.findall(r'<p class="shops-note music-trial">.*?<a href="([^"]+)" rel="([^"]+)"', music, re.S)
+    trials = re.findall(r'<p class="shops-note trial">.*?<a href="([^"]+)" rel="([^"]+)"', music, re.S)
     assert len(trials) == music.count('class="more-shops"') > 0
     assert all(href == "https://www.amazon.co.uk/unlimited?tag=test-21" and rel == config.AFFILIATE_REL
                for href, rel in trials)
     assert "These aren't affiliate links" not in music
     assert "The shop and streaming links aren't affiliate links" in music
     books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
-    assert "/unlimited" not in books and "These aren't affiliate links" in books
+    assert "/unlimited" not in books and "The shop links aren't affiliate links" in books
+
+
+def test_books_offer_a_kindle_unlimited_trial_under_the_ebook_shops(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
+    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    trials = re.findall(r'<p class="shops-note trial">(.*?)<a href="([^"]+)" rel="([^"]+)"[^>]*>([^<]+)</a>', books, re.S)
+    assert len(trials) == books.count('class="more-shops"') > 0
+    assert all(intro.strip() == "Some books are free to read with Kindle Unlimited."
+               and href == "https://www.amazon.co.uk/kindle-dbs/hz/signup?tag=test-21"
+               and rel == config.AFFILIATE_REL and text == "Try it free for 30 days"
+               for intro, href, rel, text in trials)
+    popover = books.split('<div class="shops"', 2)[1]  # under the ebook shops, not the bookshops
+    assert popover.index("Ebooks &amp; audiobooks") < popover.index("kindle-dbs")
+    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert "kindle-dbs" not in music
+
+
+def test_about_page_offers_both_trials(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
+    support = (tmp_path / "about" / "index.html").read_text(encoding="utf-8").split('id="support"', 1)[1].split("</section>", 1)[0]
+    links = re.findall(r'<a href="([^"]+)" rel="([^"]+)" target="_blank">([^<]+)</a>', support)
+    assert links == [("https://www.amazon.co.uk/kindle-dbs/hz/signup?tag=test-21", config.AFFILIATE_REL, "Kindle Unlimited"),
+                     ("https://www.amazon.co.uk/unlimited?tag=test-21", config.AFFILIATE_REL, "Amazon Music Unlimited")]
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    assert "kindle-dbs" not in about and "/unlimited" not in about
 
 
 def test_no_music_trial_without_a_tag(tmp_path):
     render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
     music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert "/unlimited" not in music and "These aren't affiliate links" in music
+    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert "kindle-dbs" not in books and "These aren't affiliate links" in books
