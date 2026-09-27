@@ -6,7 +6,8 @@
 {% block main %}
 <div class="intro hero">
   <h1>{{ kind_names[kind] }}</h1>
-  <p>Every new {{ noun[:-1] }} from the last week, across all genres. Choose a genre to see what's coming soon too.</p>
+  {% set n = recent.releases|length %}
+  <p>{% if n %}{{ n }} new {{ noun if n != 1 else noun[:-1] }} from {{ "the last week" if recent.days == config.PAST_DAYS else "the last two weeks" }}, across all genres.{% else %}Nothing new from the last two weeks.{% endif %} Choose a genre to see what's coming soon too.</p>
   {{ surprise_button(kind) }}
 </div>
 {{ tiles(kind, pages_of_kind, "Genres") }}

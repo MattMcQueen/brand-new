@@ -511,3 +511,15 @@ def test_no_music_trial_without_a_tag(tmp_path):
     assert "/unlimited" not in music and "These aren't affiliate links" in music
     books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert "kindle-dbs" not in books and "hz/audible/mlp" not in books and "These aren't affiliate links" in books
+
+
+def test_kind_pages_give_the_real_total_and_explain_the_tile_counts(tmp_path):
+    releases = sample.releases(TODAY)
+    render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    for kind, noun in (("books", "books"), ("music", "albums")):
+        html = (tmp_path / kind / "index.html").read_text(encoding="utf-8")
+        shown = html.split('id="past-h"', 1)[1].count('<li class="card"')
+        assert shown and f"<p>{shown} new {noun} from the last week, across all genres." in html
+        assert f"Some {noun} are in more than one genre, so they&#39;re counted in each." in html             or f"Some {noun} are in more than one genre, so they're counted in each." in html
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert home.count('class="tiles-note"') == 2
