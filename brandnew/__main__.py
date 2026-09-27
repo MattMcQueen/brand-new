@@ -1,4 +1,4 @@
-"""Command line: python -m brandnew fetch | build | serve"""
+"""Command line: python -m brandnew fetch | build | serve | bluesky"""
 import argparse
 import functools
 import http.server
@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import config, hosting, pipeline, render, sample, store
+from . import bluesky, config, hosting, pipeline, render, sample, store
 from .sources import google_books, isfdb, listenbrainz
 from .ukdates import in_fetch_window, now_uk
 
@@ -63,6 +63,14 @@ def cmd_fetch(args) -> int:
     return 0
 
 
+def load_for_site(path: Path):
+    generated, releases = store.load(path)
+    releases = google_books.relink(releases)  # so older data links the way fresh data would
+    # Books carried over from an earlier run (for a genre that came back empty) can repeat
+    # today's under another ISBN, so merge once more over everything.
+    return generated, google_books.merge_books(releases)
+
+
 def cmd_build(args) -> int:
     now = now_uk()
     if args.sample:
@@ -71,11 +79,7 @@ def cmd_build(args) -> int:
         if not args.data.exists():
             print(f"No data file at {args.data}. Use --sample to build with made-up data.", file=sys.stderr)
             return 1
-        generated, releases = store.load(args.data)
-        releases = google_books.relink(releases)  # so older data links the way fresh data would
-        # Books carried over from an earlier run (for a genre that came back empty) can repeat
-        # today's under another ISBN, so merge once more over everything.
-        releases = google_books.merge_books(releases)
+        generated, releases = load_for_site(args.data)
         for kind in ("books", "music"):
             n = sum(r.kind == kind for r in releases)
             if n < args.min_releases:
@@ -85,6 +89,33 @@ def cmd_build(args) -> int:
     pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
     print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/",
           file=sys.stderr)
+    return 0
+
+
+def cmd_bluesky(args) -> int:
+    """Prints this week's thread; with --post, posts it (Fridays only, and only from today's data)."""
+    now = now_uk()
+    today = now.date()
+    generated, releases = load_for_site(args.data)
+    posts = bluesky.thread(releases, today)
+    sys.stdout.reconfigure(encoding="utf-8")  # emoji, on Windows too
+    print(bluesky.preview(posts) if posts else "Nothing out this week: no thread.")
+    if not args.post or not posts:
+        return 0
+    if today.weekday() != 4 and not args.any_day:
+        print("Not posting: it isn't Friday (--any-day overrides this).", file=sys.stderr)
+        return 0
+    if generated.astimezone(now.tzinfo).date() != today:
+        print(f"Not posting: the data is from {generated:%a %d %b}, not today.", file=sys.stderr)
+        return 1
+    handle, password = os.environ.get("BLUESKY_HANDLE"), os.environ.get("BLUESKY_APP_PASSWORD")
+    if not handle or not password:
+        print("Not posting: BLUESKY_HANDLE and BLUESKY_APP_PASSWORD must both be set.", file=sys.stderr)
+        return 1
+    if bluesky.posted_today(handle, today):
+        print("Not posting: today's thread is already on Bluesky.", file=sys.stderr)
+        return 0
+    bluesky.post_thread(posts, bluesky.Client(handle, password), now)
     return 0
 
 
@@ -139,6 +170,11 @@ def main(argv=None) -> int:
     s.add_argument("--out", type=Path, default=DEFAULT_OUT)
     s.add_argument("--port", type=int, default=8000)
     s.set_defaults(func=cmd_serve)
+    k = sub.add_parser("bluesky", help="print this week's Bluesky thread, or post it with --post")
+    k.add_argument("--data", type=Path, default=DEFAULT_DATA)
+    k.add_argument("--post", action="store_true", help="post it (otherwise just print it)")
+    k.add_argument("--any-day", action="store_true", help="post even if it isn't Friday")
+    k.set_defaults(func=cmd_bluesky)
     args = p.parse_args(argv)
     return args.func(args)
 

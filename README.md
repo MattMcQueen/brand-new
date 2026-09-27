@@ -37,6 +37,21 @@ GOOGLE_BOOKS_KEY_FILE=path/to/key.txt .venv/Scripts/python -m brandnew fetch
 - `AMAZON_TAG`: overrides the Associates tracking tag in `brandnew/config.py` (matsbasblo-21).
 - The first music fetch takes about 10 minutes (MusicBrainz allows 1 request a second); artist genres are then cached in `.cache/`.
 
+### The weekly Bluesky thread
+
+Every Friday, a thread of what came out that week (Saturday to Friday): an opening post, then a
+reply per genre naming up to four releases, each with a link card to that genre's page. Links go to
+this site, never straight to Amazon. The thread is written by `brandnew/bluesky.py`.
+
+```bash
+.venv/Scripts/python -m brandnew bluesky          # print this week's thread; posts nothing
+.venv/Scripts/python -m brandnew bluesky --post   # post it: Fridays only, from today's data
+```
+
+`--post` needs `BLUESKY_HANDLE` and `BLUESKY_APP_PASSWORD` (an app password, never the account's
+own). It won't post twice in a day: it first checks the account's public feed for today's thread.
+`--any-day` lets it post on a day other than Friday.
+
 ### In Docker
 
 Serves whatever is in `dist/` at http://localhost:8080 (this computer only). Build the site first;
