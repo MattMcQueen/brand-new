@@ -7,6 +7,10 @@ BLOG_URL = "https://www.matt-rarely-writes.co.uk"
 KOFI_URL = "https://ko-fi.com/mattrarelywrites"
 USER_AGENT = f"BrandNew/0.1 ( {SITE_URL} )"
 
+# The Bluesky bot's account ID. The site publishes it at /.well-known/atproto-did, which is how
+# Bluesky checks that @brand-new.matt-rarely-writes.co.uk belongs to that account.
+BLUESKY_DID = "did:plc:b4tmtgkkichk6nijwnyyo3xa"
+
 # Cloudflare Web Analytics site token (public: it's in every page). Empty = no analytics script.
 CLOUDFLARE_ANALYTICS_TOKEN = "b54662e6c057425781fbab2cdcd31e9a"
 

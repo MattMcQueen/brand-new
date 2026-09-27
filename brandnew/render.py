@@ -291,6 +291,8 @@ def build(releases: list[Release], generated: datetime, out: Path, today: date,
     shutil.copytree(STATIC, out / "static")
     (out / "staticwebapp.config.json").write_text(json.dumps(hosting.config(), indent=2) + "\n", encoding="utf-8")
     store.save(out / "data" / "releases.json", releases, generated)
+    (out / ".well-known").mkdir()
+    (out / ".well-known" / "atproto-did").write_text(config.BLUESKY_DID, encoding="utf-8")
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {config.SITE_URL}/sitemap.xml\n",
                                     encoding="utf-8")
     # Every page but About changes with each morning's data. About gets no <lastmod>: search engines

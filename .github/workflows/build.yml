@@ -11,6 +11,8 @@ name: Build site
 #   - on every push to main, reusing the morning's data;
 #   - by hand from the Actions tab ("Run workflow"), with or without fresh data, or adding only
 #     the ISFDB's books to the last run's data.
+# On Fridays, the run that deploys fresh data also posts the week's Bluesky thread (brandnew/bluesky.py).
+# Every build shows a preview of that thread in its summary.
 # Deploying is off until the repository variable DEPLOY_ENABLED is set to "true".
 
 on:
@@ -33,6 +35,10 @@ on:
         default: false
       skip_if_fresh:
         description: "Stop if the live site already has today's data (the daily trigger from Azure ticks this)"
+        type: boolean
+        default: false
+      post_bluesky:
+        description: "Post this week's Bluesky thread now, even if it isn't Friday (needs fresh data, so keep the first box ticked)"
         type: boolean
         default: false
 
@@ -181,3 +187,27 @@ jobs:
           action: upload
           app_location: dist
           skip_app_build: true
+
+      - name: Bluesky thread preview
+        if: steps.build.outputs.built == 'true'
+        run: |
+          {
+            echo "### This week's Bluesky thread"
+            echo
+            echo '```'
+            python -m brandnew bluesky
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Only after a deploy from a scheduled or manual run: a push to main never posts. The command
+      # itself also checks that it's Friday (unless post_bluesky is ticked), that the data is from
+      # today, and that today's thread isn't already on the account.
+      - name: Post the Bluesky thread
+        if: >-
+          steps.build.outputs.built == 'true' && vars.DEPLOY_ENABLED == 'true' &&
+          github.ref == 'refs/heads/main' &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        run: python -m brandnew bluesky --post ${{ inputs.post_bluesky && '--any-day' || '' }} > /dev/null
