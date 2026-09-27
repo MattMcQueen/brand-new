@@ -442,3 +442,23 @@ def test_every_tile_has_spare_covers_in_case_one_fails(tmp_path):
     assert all(fan.count("<img ") == 5 for _, fan in fans)
     css = (tmp_path / "static" / "style.css").read_text(encoding="utf-8")
     assert ".tile-fan img:nth-child(n+4) { display: none; }" in css
+
+
+def test_covers_offer_sizes_so_the_browser_loads_the_smallest_sharp_one(tmp_path):
+    g = "https://books.google.com/books/content?id=1&zoom=1"
+    b = Release(kind="books", id="b1", title="Book", by="A", date=TODAY, source="test", amazon_url="",
+                genres=["horror"], cover=g + "&fife=w320", cover_2x=g + "&fife=w600")
+    a = Release(kind="music", id="m1", title="Album", by="A", date=TODAY, source="test", amazon_url="",
+                genres=["rock"], cover="https://ia8.us.archive.org/x_thumb250.jpg",
+                cover_2x="https://ia8.us.archive.org/x_thumb500.jpg",
+                cover_backup="https://coverartarchive.org/release/r/1-250.jpg")
+    assert render.cover_srcset(b) == ", ".join(f"{g}&fife=w{w} {w}w" for w in (240, 320, 400, 600))
+    render.build([b, a], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    horror = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert 'sizes="(max-width: 540px) 50vw, 200px"' in horror and "fife=w240 240w" in horror
+    rock = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert ('srcset="https://ia8.us.archive.org/x_thumb250.jpg 250w, https://ia8.us.archive.org/x_thumb500.jpg 500w"'
+            in rock)
+    assert 'data-backup="https://coverartarchive.org/release/r/1-250.jpg"' in rock
+    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert 'sizes="76px"' in home and 'sizes="92px"' in home  # the genre tiles' small covers

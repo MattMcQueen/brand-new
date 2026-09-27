@@ -26,7 +26,7 @@ def test_to_release():
     r = gb.to_release(item(days=3), "horror", TODAY)
     assert r.id == "9780306406157" and r.genres == ["horror"]
     assert r.amazon_url == "https://www.amazon.co.uk/s?k=A+Novel+Ann+Author&i=stripbooks"
-    assert r.cover == "https://books.google.com/x?id=1&fife=w300"
+    assert r.cover == "https://books.google.com/x?id=1&fife=w320"
     assert r.cover_2x == "https://books.google.com/x?id=1&fife=w600"
     assert r.info_url.startswith("https://books.google.co.uk/")
 
@@ -169,7 +169,7 @@ def test_relink_turns_older_isbn_links_into_searches():
                                   Release.from_dict(album)])
     assert book.genres == ["fantasy", "horror"]  # the old combined genre is filed under fantasy
     assert book.amazon_url == "https://www.amazon.co.uk/s?k=The+Thoroughbreds+Elin+Hilderbrand&i=stripbooks"
-    assert book.cover == "https://books.google.com/books/content?id=1&zoom=1&fife=w300"
+    assert book.cover == "https://books.google.com/books/content?id=1&zoom=1&fife=w320"
     assert book.cover_2x == "https://books.google.com/books/content?id=1&zoom=1&fife=w600"
     assert gb.relink([book])[0].cover == book.cover  # the same however many times it's run
     assert same_album.amazon_url == album["amazon_url"]

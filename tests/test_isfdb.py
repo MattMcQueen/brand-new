@@ -119,7 +119,7 @@ def test_fetch_files_books_by_subject_and_caches(tmp_path, monkeypatch):
     assert by_title["A Divided Duty"].genres == ["fantasy"]
     star = by_title["Star Road"]
     assert star.genres == ["science-fiction"] and star.source == "isfdb" and star.date == date(2026, 10, 6)
-    assert star.info_url == "https://www.isfdb.org/cgi-bin/pl.cgi?11" and star.cover == "https://books.google.com/x?id=1&fife=w300"
+    assert star.info_url == "https://www.isfdb.org/cgi-bin/pl.cgi?11" and star.cover == "https://books.google.com/x?id=1&fife=w320"
     assert star.amazon_url == "https://www.amazon.co.uk/s?k=Star+Road+Ann+Author&i=stripbooks"
     looked_up = google.calls  # 2 known books x 2 calls, plus 1 search for the unknown one
     assert looked_up == 5

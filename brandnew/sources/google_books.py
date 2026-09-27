@@ -65,16 +65,27 @@ def relink(releases: list[Release]) -> list[Release]:
     return out
 
 
+# Cover widths offered to the browser, which picks the smallest that's sharp on its screen. Not
+# 300: Google saves that one size at a higher quality, so it's bigger than 320 (68 KB against 44).
+COVER_WIDTHS = (240, 320, 400, 600)
+
+
 def covers(img: str | None) -> tuple[str | None, str | None]:
     """A book's cover for ordinary and sharp (2x) screens. The thumbnail Google names is only
     128 pixels wide, which looks blurred on a card; its fife=w<width> setting gives a bigger copy
-    of the same image (or the biggest it has)."""
+    of the same image (or the biggest it has). cover_srcset() offers the in-between sizes too."""
     if not img:
         return None, None
     base = re.sub(r"&fife=w\d+", "", img.replace("http://", "https://").replace("&edge=curl", ""))
     if "books.google." not in base:
         return base, None
-    return f"{base}&fife=w300", f"{base}&fife=w600"
+    return f"{base}&fife=w320", f"{base}&fife=w600"
+
+
+def cover_srcset(img: str) -> str:
+    """Every size in COVER_WIDTHS of a Google Books cover, for an <img srcset>."""
+    base = re.sub(r"&fife=w\d+", "", img)
+    return ", ".join(f"{base}&fife=w{w} {w}w" for w in COVER_WIDTHS)
 
 
 def clean_title(title: str, subtitle: str | None = None) -> str:

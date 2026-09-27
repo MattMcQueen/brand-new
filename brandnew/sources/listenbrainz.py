@@ -3,8 +3,11 @@ with genres from MusicBrainz artist lookups (cached between runs)."""
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from .. import amazon, config, net
 from ..models import Release
@@ -27,6 +30,8 @@ MAX_CANDIDATES = 500    # most popular albums to look up genres for
 MAX_PER_GENRE = 60      # per genre page
 GENRE_CACHE_DAYS = 30
 MAX_LOOKUPS = 700       # MusicBrainz lookups per run (~13 minutes at 1 per second)
+COVER_TRIES = 3         # the Cover Art Archive sends each request to one of a cover's copies; some can be broken
+COVER_WORKERS = 8       # covers looked up at once (about 2 minutes for 300 albums)
 
 
 def base_title(title: str) -> str:
@@ -171,3 +176,30 @@ def fetch(today: date, cache_path: Path) -> list[Release]:
         cache.save()
     print(f"  MusicBrainz: {lookups} artist lookups, {len(out)} albums matched a genre", file=sys.stderr)
     return cap_per_genre(out)
+
+
+def direct_covers(releases: list[Release]) -> list[Release]:
+    """Link album covers straight to the Internet Archive server that holds them. A Cover Art
+    Archive link goes through two redirects first (coverartarchive.org, then archive.org), each a
+    new connection to a server in North America, which made album covers much slower to appear
+    than book covers. Following them here, once a day, also steps around copies that are broken
+    today. Nothing is copied: the covers stay on the Internet Archive. The Cover Art Archive link
+    is kept as the backup early.js falls back on, and stays the cover if no working copy is found."""
+    todo = [i for i, r in enumerate(releases)
+            if r.kind == "music" and r.cover and r.cover.startswith("https://coverartarchive.org/")]
+
+    def direct(r: Release) -> Release:
+        for _ in range(COVER_TRIES):
+            url = net.final_url(r.cover)
+            host = urlsplit(url or "").hostname or ""
+            if host.endswith(".archive.org") and url.endswith("_thumb250.jpg"):
+                return replace(r, cover=url, cover_2x=url.removesuffix("250.jpg") + "500.jpg", cover_backup=r.cover)
+        return r
+
+    out = list(releases)
+    with ThreadPoolExecutor(COVER_WORKERS) as pool:
+        for i, r in zip(todo, pool.map(direct, [releases[i] for i in todo])):
+            out[i] = r
+    found = sum(out[i].cover_backup is not None for i in todo)
+    print(f"  Covers: {found} of {len(todo)} albums linked straight to the Internet Archive", file=sys.stderr)
+    return out
