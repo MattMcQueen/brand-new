@@ -7,6 +7,7 @@ books with an exact publication date inside the window.
 import os
 import re
 import sys
+import unicodedata
 from dataclasses import replace
 from datetime import date
 from pathlib import Path
@@ -163,25 +164,59 @@ def to_release(item: dict, genre: str, today: date) -> Release | None:
                    publisher=v.get("publisher") or "", info_url=v.get("infoLink") or v.get("canonicalVolumeLink"))
 
 
-def _dedupe_key(r: Release) -> tuple[str, str]:
-    return re.sub(r"\W+", " ", r.title.split(":")[0]).strip().lower(), r.by.split(",")[0].strip().lower()
+def _plain(text: str) -> str:
+    """Lower case, accents and punctuation gone: 'Goût' and 'Gout', 'R.J.' and 'R. J.' match."""
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text).split())
+
+
+def _title_key(r: Release) -> str:
+    """The title before any subtitle or '(Series, Book 2)'."""
+    return _plain(re.sub(r"\(.*?\)", "", r.title.split(":")[0]))
+
+
+def _surnames(r: Release) -> set[str]:
+    return {words[-1] for a in r.by.split(",") if (words := _plain(a).split())}
+
+
+def _same_book(a: Release, b: Release) -> bool:
+    """Same title, and a shared author in any order. An anthology can be listed under its editor in
+    one source and its contributors in another, so a long title out on the same day also counts."""
+    if _title_key(a) != _title_key(b):
+        return False
+    if _surnames(a) & _surnames(b):
+        return True
+    full = _plain(a.title)
+    return a.date == b.date and full == _plain(b.title) and len(full.split()) >= 4
 
 
 def merge(found: list[Release]) -> list[Release]:
-    """One entry per book: combine genres, and between editions prefer a 978 ISBN, a cover, the earliest date."""
-    best: dict[tuple, Release] = {}
-    genres: dict[tuple, list[str]] = {}
+    """One entry per book, across editions and sources: combine genres, and keep the edition with a
+    978 ISBN, then a cover, then the earliest date (then whichever came first)."""
+    groups: list[list[Release]] = []
+    by_title: dict[str, list[list[Release]]] = {}
     for r in found:
-        k = _dedupe_key(r)
-        genres.setdefault(k, [])
-        genres[k] += [g for g in r.genres if g not in genres[k]]
-        cur = best.get(k)
-        if cur is None or (not cur.id.startswith("978"), cur.cover is None, cur.date) > \
-                (not r.id.startswith("978"), r.cover is None, r.date):
-            best[k] = r
-    for k, r in best.items():
-        r.genres = genres[k]
-    return list(best.values())
+        candidates = by_title.setdefault(_title_key(r), [])
+        group = next((g for g in candidates if any(_same_book(r, o) for o in g)), None)
+        if group is None:
+            group = []
+            candidates.append(group)
+            groups.append(group)
+        group.append(r)
+    merged = []
+    for group in groups:
+        best = min(group, key=lambda r: (not r.id.startswith("978"), r.cover is None, r.date))
+        genres: list[str] = []
+        for r in group:
+            genres += [g for g in r.genres if g not in genres]
+        best.genres = genres
+        merged.append(best)
+    return merged
+
+
+def merge_books(releases: list[Release]) -> list[Release]:
+    """merge() for the books among all releases; music is left as it is."""
+    return [r for r in releases if r.kind != "books"] + merge([r for r in releases if r.kind == "books"])
 
 
 def fetch(today: date, get_json=None) -> list[Release]:

@@ -101,6 +101,52 @@ def test_merge_editions_and_genres():
     assert m.genres == ["horror", "literary-fiction"]
 
 
+def book(title, by, isbn, days=0, genres=("fantasy",), source="google-books"):
+    from brandnew.models import Release
+    return Release(kind="books", id=isbn, title=title, by=by, date=TODAY + timedelta(days=days), source=source,
+                   amazon_url="", genres=list(genres), cover="c")
+
+
+@pytest.mark.parametrize("a, b", [
+    # Real pairs from 27 Sept 2026 that showed twice
+    (book("Daughter of the Dark", "R.J. Valldeperas", "9781250427977", genres=["romance"]),
+     book("Daughter of the Dark", "R. J. Valldeperas", "9781250427953", source="isfdb")),
+    (book("Rooted", "Leopoldo Goût", "9781250781536"), book("Rooted", "Leopoldo Gout", "9781250781529", source="isfdb")),
+    (book("The Best American Science Fiction and Fantasy 2026", "John Joseph Adams, Olivie Blake", "9780063000001"),
+     book("The Best American Science Fiction and Fantasy 2026", "Olivie Blake, John Joseph Adams", "9780063000002",
+          genres=["science-fiction"])),
+    (book("Revolution in the Heart: Stories Inspired by Ursula K. Le Guin", "Charlie Jane Anders, Ai Jiang", "9781803360001"),
+     book("Revolution in the Heart: Stories Inspired by Ursula K. Le Guin", "Jonathan Strahan", "9781803360002",
+          source="isfdb")),
+    # A series note in brackets, and a different date for another edition
+    (book("Night (The Dark, Book 2)", "Ann Author", "9780000000001"), book("Night", "Ann Author", "9780000000002", days=30)),
+])
+def test_merge_across_sources_and_spellings(a, b):
+    [m] = gb.merge([a, b])
+    assert m.id == a.id  # a tie keeps whichever came first
+    assert m.genres == a.genres + [g for g in b.genres if g not in a.genres]
+
+
+@pytest.mark.parametrize("a, b", [
+    # Same short title, different authors, same day: two books
+    (book("Rooted", "Leopoldo Gout", "9781250781536"), book("Rooted", "Ann Other", "9780000000003")),
+    # Same long title but different authors and days: two books
+    (book("A Story of the Sea and the Stars", "Ann Author", "9780000000004"),
+     book("A Story of the Sea and the Stars", "Bob Writer", "9780000000005", days=14)),
+])
+def test_different_books_stay_apart(a, b):
+    assert len(gb.merge([a, b])) == 2
+
+
+def test_merge_books_leaves_music_alone():
+    from brandnew.models import Release
+    album = Release(kind="music", id="m", title="Rooted", by="Leopoldo Gout", date=TODAY, source="listenbrainz",
+                    amazon_url="", genres=["rock"])
+    books = [book("Rooted", "Leopoldo Goût", "9781250781536"), book("Rooted", "Leopoldo Gout", "9781250781529")]
+    merged = gb.merge_books([album, *books])
+    assert album in merged and sum(r.kind == "books" for r in merged) == 1
+
+
 def test_key_from_file(tmp_path, monkeypatch):
     monkeypatch.delenv("GOOGLE_BOOKS_KEY", raising=False)
     f = tmp_path / "k.txt"
