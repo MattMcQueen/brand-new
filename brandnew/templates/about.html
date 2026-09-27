@@ -88,7 +88,12 @@
   <section aria-labelledby="privacy">
     <h2 id="privacy">Privacy</h2>
     <ul class="points">
+      {% if config.CLOUDFLARE_ANALYTICS_TOKEN %}
+      <li>This site doesn't use cookies or adverts.</li>
+      <li>Visits are counted with <a href="https://www.cloudflare.com/web-analytics/">Cloudflare Web Analytics</a>, which doesn't use cookies or identify you: it only records things like which pages are read and roughly where visitors come from. See <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</li>
+      {% else %}
       <li>This site doesn't use cookies, analytics or adverts.</li>
+      {% endif %}
       <li>If you switch between light and dark mode, your choice is remembered in your own browser and never sent anywhere.</li>
       <li>Covers are loaded from the Cover Art Archive and Google, so, as with any website, those services can see your IP address.</li>
       <li>Once you click through to Amazon, Google Books, the ISFDB or another shop, that site's own privacy policy applies.</li>

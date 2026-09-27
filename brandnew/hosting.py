@@ -5,14 +5,15 @@
 # Everything a page may load. Anything else (an injected script, a stray tracker) is blocked.
 CSP = "; ".join([
     "default-src 'self'",
-    "script-src 'self'",                  # no inline scripts: see static/early.js
+    # no inline scripts (see static/early.js); Cloudflare Web Analytics' counter script
+    "script-src 'self' https://static.cloudflareinsights.com",
     "style-src 'self'",
     "font-src 'self'",
     # covers: Google Books, and the Cover Art Archive, which redirects to archive.org's servers
     "img-src 'self' https://books.google.com https://*.googleusercontent.com "
     "https://coverartarchive.org https://archive.org https://*.archive.org",
     "frame-src https://ko-fi.com",        # the Support me panel, only once it's opened
-    "connect-src 'self'",
+    "connect-src 'self' https://cloudflareinsights.com",  # where the counter sends page views
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
