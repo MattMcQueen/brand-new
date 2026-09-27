@@ -73,6 +73,9 @@ def cmd_build(args) -> int:
             return 1
         generated, releases = store.load(args.data)
         releases = google_books.relink(releases)  # so older data links the way fresh data would
+        # Books carried over from an earlier run (for a genre that came back empty) can repeat
+        # today's under another ISBN, so merge once more over everything.
+        releases = google_books.merge_books(releases)
         for kind in ("books", "music"):
             n = sum(r.kind == kind for r in releases)
             if n < args.min_releases:
