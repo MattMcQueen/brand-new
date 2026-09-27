@@ -47,6 +47,8 @@ def config() -> dict:
         "trailingSlash": "auto",
         "routes": [
             {"route": "/static/*", "headers": {"Cache-Control": STATIC_CACHE}},
+            # Bluesky's handle check: it has no file extension, so say what it is
+            {"route": "/.well-known/atproto-did", "headers": {"Content-Type": "text/plain; charset=utf-8"}},
             # Genre pages that moved: search engines and bookmarks still have the old address
             *({"route": f"{old}*", "redirect": new, "statusCode": 301} for old, new in MOVED.items()),
         ],

@@ -56,3 +56,10 @@ def test_analytics_script_only_when_a_token_is_set(tmp_path, monkeypatch):
 def test_analytics_hosts_are_allowed():
     assert "script-src 'self' https://static.cloudflareinsights.com" in hosting.CSP
     assert "connect-src 'self' https://cloudflareinsights.com" in hosting.CSP
+
+
+def test_bluesky_handle_file(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    assert (tmp_path / ".well-known" / "atproto-did").read_text(encoding="utf-8") == config.BLUESKY_DID
+    assert config.BLUESKY_DID.startswith("did:plc:")
+    assert hosting.headers_for("/.well-known/atproto-did")["Content-Type"].startswith("text/plain")
