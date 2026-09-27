@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Starts the Build site workflow at 09:17, 11:17 and 15:17 UK time, as GitHub's own scheduled runs often don't fire. Each run has skip_if_fresh ticked, so only the first one that finds yesterday's data on the live site does the work. Deploy: az deployment group create -g rg-matt-rarely-writes -f infra/daily-trigger.json -p githubToken=... (a fine-grained token for this repository with Actions: read and write)."
+  },
+  "parameters": {
+    "githubToken": {
+      "type": "securestring",
+      "metadata": { "description": "Fine-grained GitHub token: this repository only, Actions read and write." }
+    },
+    "name": { "type": "string", "defaultValue": "logic-brand-new-daily" },
+    "location": { "type": "string", "defaultValue": "uksouth" },
+    "repository": { "type": "string", "defaultValue": "MattMcQueen/brand-new" },
+    "workflow": { "type": "string", "defaultValue": "build.yml" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "githubToken": { "type": "securestring" },
+            "dispatchUrl": { "type": "string" }
+          },
+          "triggers": {
+            "Daily_slots": {
+              "type": "Recurrence",
+              "recurrence": {
+                "frequency": "Day",
+                "interval": 1,
+                "timeZone": "GMT Standard Time",
+                "schedule": { "hours": [9, 11, 15], "minutes": [17] }
+              }
+            }
+          },
+          "actions": {
+            "Run_Build_site": {
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "@parameters('dispatchUrl')",
+                "headers": {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "@{concat('Bearer ', parameters('githubToken'))}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "brand-new-daily-trigger"
+                },
+                "body": {
+                  "ref": "main",
+                  "inputs": { "fetch": "true", "skip_if_fresh": "true" }
+                },
+                "retryPolicy": { "type": "exponential", "count": 4, "interval": "PT1M" }
+              },
+              "runtimeConfiguration": {
+                "secureData": { "properties": ["inputs"] }
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "githubToken": { "value": "[parameters('githubToken')]" },
+          "dispatchUrl": {
+            "value": "[format('https://api.github.com/repos/{0}/actions/workflows/{1}/dispatches', parameters('repository'), parameters('workflow'))]"
+          }
+        }
+      }
+    }
+  ]
+}
