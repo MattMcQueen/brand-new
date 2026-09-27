@@ -43,11 +43,13 @@
     <h2 id="affiliate-links">How the Amazon links work</h2>
     <p class="callout"><strong>{{ config.AMAZON_DISCLOSURE }}</strong></p>
     <p>The "on Amazon UK" buttons, and the smaller "Kindle" and "Audible" buttons under them, are <strong>affiliate links</strong>. An affiliate link is an ordinary link to a shop with a code added to it, so the shop knows which website sent you. Mine is <code>{{ config.AMAZON_TAG }}</code>, and you'll see it at the end of the Amazon address as <code>tag={{ config.AMAZON_TAG }}</code>.</p>
-    <ul class="facts facts-3" role="list">
+    <ul class="facts" role="list">
       <li><h3>How I'm paid</h3>
         <p>If you follow one of those links and then buy something, Amazon pays me a small commission, a percentage of the price, as thanks for sending you. It generally counts anything you buy within 24 hours of clicking, not only the item you clicked on.</p></li>
       <li><h3>You don't pay a penny more</h3>
         <p>The price is exactly the same as if you'd gone to Amazon yourself: the commission comes out of Amazon's share, not your pocket. Amazon doesn't tell me who you are; I only see totals, such as which items were ordered through the site.</p></li>
+      <li><h3>The Amazon Music Unlimited trial</h3>
+        <p>Under the streaming links for an album there's a "Try it free" link for Amazon Music Unlimited. It's an affiliate link too: if you start a free trial from it, Amazon pays me a fixed fee. It costs you nothing extra, and the trial works the same as if you'd started it yourself.</p></li>
       <li><h3>You never have to use them</h3>
         <p>If you'd rather, search Amazon yourself, or buy from your local bookshop or record shop. The "More on Google Books" and "More on ISFDB" links are not affiliate links, and nobody pays to appear on this site.</p></li>
     </ul>
@@ -66,7 +68,7 @@
       <div><dt>Record shops</dt><dd>{{ chips(record_shops) }}
         <p>These open a search on the shop's site, as the album links to Amazon UK do.</p></dd></div>
     </dl>
-    <p class="callout">These are <strong>not affiliate links</strong>, Amazon Music included: I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
+    <p class="callout">These are <strong>not affiliate links</strong>, Amazon Music included (only the Amazon Music Unlimited "Try it free" link is): I don't earn anything when you use them, and none of these shops has paid to be listed. They're there because it's your choice where you buy.</p>
   </section>
 
   <section aria-labelledby="data">

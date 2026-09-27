@@ -462,3 +462,22 @@ def test_covers_offer_sizes_so_the_browser_loads_the_smallest_sharp_one(tmp_path
     assert 'data-backup="https://coverartarchive.org/release/r/1-250.jpg"' in rock
     home = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'sizes="76px"' in home and 'sizes="92px"' in home  # the genre tiles' small covers
+
+
+def test_albums_offer_a_music_unlimited_trial_under_the_streaming_links(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
+    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    trials = re.findall(r'<p class="shops-note music-trial">.*?<a href="([^"]+)" rel="([^"]+)"', music, re.S)
+    assert len(trials) == music.count('class="more-shops"') > 0
+    assert all(href == "https://www.amazon.co.uk/unlimited?tag=test-21" and rel == config.AFFILIATE_REL
+               for href, rel in trials)
+    assert "These aren't affiliate links" not in music
+    assert "The shop and streaming links aren't affiliate links" in music
+    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert "/unlimited" not in books and "These aren't affiliate links" in books
+
+
+def test_no_music_trial_without_a_tag(tmp_path):
+    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    assert "/unlimited" not in music and "These aren't affiliate links" in music

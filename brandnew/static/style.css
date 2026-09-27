@@ -290,6 +290,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .shops-list a:hover { border-color: var(--accent); color: var(--accent); }
 .shops-list .icon { width: 16px; height: 16px; color: var(--muted); }
 .shops-note { margin: 0 0 8px; font-size: .8rem; color: var(--muted); }
+.music-trial a { font-weight: 700; white-space: nowrap; }
 .amazon-formats { margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .amazon-formats a {
   padding: 5px 4px; border-radius: 999px; border: 1.5px solid var(--accent); color: var(--accent);

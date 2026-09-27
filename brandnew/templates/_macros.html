@@ -82,8 +82,13 @@
         {% endfor %}
       </ul>
       {% if group.note %}<p class="shops-note">{{ group.note }}</p>{% endif %}
+      {% if group.heading == "Listen" and music_trial %}
+      <p class="shops-note music-trial">Amazon Music Unlimited has every new release.
+        <a href="{{ music_trial }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
+           aria-label="Try Amazon Music Unlimited free (affiliate link, opens in a new tab)">Try it free</a> (affiliate link)</p>
+      {% endif %}
       {% endfor %}
-      <p class="shops-note">These aren't affiliate links, so I earn nothing from them. <a href="/about/#other-shops">About the links</a></p>
+      <p class="shops-note">{{ "The shop and streaming links" if r.kind == "music" and music_trial else "These" }} aren't affiliate links, so I earn nothing from them. <a href="/about/#other-shops">About the links</a></p>
     </div>
   </div>
   <div class="card-source">

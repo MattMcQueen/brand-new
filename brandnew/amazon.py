@@ -5,6 +5,9 @@ If Amazon's Creators API is added later, it can replace these link builders.
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 BASE = "https://www.amazon.co.uk"
+# Associates' landing page for an Amazon Music Unlimited free trial, which pays a fixed fee per
+# trial started from it (Prime members included). Amazon redirects it to /music/unlimited, tag kept.
+MUSIC_UNLIMITED_URL = f"{BASE}/unlimited"
 
 
 def search_url(query: str, department: str) -> str:
