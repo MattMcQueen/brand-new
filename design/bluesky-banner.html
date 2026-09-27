@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- Source for design/bluesky-banner.png, the banner (header image) on the Bluesky bot's profile,
+     @brand-new.matt-rarely-writes.co.uk. Bluesky shows it at 3:1 with the avatar over the bottom-left
+     corner, so that corner is kept clear. Upload it by hand: Edit profile -> the banner's camera icon.
+     The cover fans in bluesky-banner/ are cut from a screenshot of the home page by bluesky-banner.py.
+     Regenerate (from the repo root) with Microsoft Edge:
+     "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless --disable-gpu --hide-scrollbars
+       --allow-file-access-from-files --window-size=1500,500
+       --screenshot="%CD%/design/bluesky-banner.png" "file:///%CD%/design/bluesky-banner.html" -->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Young Serif"; src: url("../brandnew/static/fonts/young-serif-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Figtree"; font-weight: 300 900; src: url("../brandnew/static/fonts/figtree-latin.woff2") format("woff2"); }
+  /* The site's dark-mode colours: --surface (the tiles the fans are cut from), --fg, --soft, --accent */
+  html, body { margin: 0; width: 1500px; height: 500px; overflow: hidden; background: #1a2029; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px;
+         font-family: "Figtree", sans-serif; }
+  .fans { display: flex; gap: 14px; align-items: center; }
+  .fans img { width: 230px; height: auto; display: block; }
+  .gap { width: 36px; }  /* between the books and the albums */
+  .words { text-align: center; }
+  h1 { font-family: "Young Serif", serif; font-weight: 400; color: #ece6da; font-size: 64px; margin: 0; line-height: 1.1; }
+  p { color: #b6bfcc; font-size: 30px; margin: 8px 0 0; }
+  p b { color: #e08a63; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="fans">
+  <img src="bluesky-banner/fan-crime.png" alt=""><img src="bluesky-banner/fan-fantasy.png" alt=""><img src="bluesky-banner/fan-horror.png" alt="">
+  <div class="gap"></div>
+  <img src="bluesky-banner/fan-pop.png" alt=""><img src="bluesky-banner/fan-electronic.png" alt=""><img src="bluesky-banner/fan-jazz.png" alt="">
+</div>
+<div class="words">
+  <h1>What's new and what's next</h1>
+  <p>New books and albums, by genre. <b>A new thread every Friday.</b></p>
+</div>
+</body>
+</html>
