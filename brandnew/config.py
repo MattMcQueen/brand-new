@@ -7,6 +7,9 @@ BLOG_URL = "https://www.matt-rarely-writes.co.uk"
 KOFI_URL = "https://ko-fi.com/mattrarelywrites"
 USER_AGENT = f"BrandNew/0.1 ( {SITE_URL} )"
 
+# Cloudflare Web Analytics site token (public: it's in every page). Empty = no analytics script.
+CLOUDFLARE_ANALYTICS_TOKEN = "b54662e6c057425781fbab2cdcd31e9a"
+
 AMAZON_TAG = "matsbasblo-21"  # Associates UK tracking ID (public: it's in every link). AMAZON_TAG env var overrides.
 AMAZON_DISCLOSURE ="As an Amazon Associate I earn from qualifying purchases."
 AFFILIATE_REL = "sponsored nofollow noopener"

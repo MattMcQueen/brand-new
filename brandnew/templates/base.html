@@ -33,6 +33,10 @@
 <meta name="theme-color" content="#f5f7fa" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#13171d" media="(prefers-color-scheme: dark)">
 <script src="{{ asset('app.js') }}" defer></script>
+{% if config.CLOUDFLARE_ANALYTICS_TOKEN %}
+{# Counts visits (Cloudflare Web Analytics): no cookies, nothing that identifies a visitor. #}
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{ {"token": config.CLOUDFLARE_ANALYTICS_TOKEN}|tojson }}'></script>
+{% endif %}
 </head>
 <body>
 {{ icon_sprite() }}
