@@ -124,8 +124,7 @@ class PreviewHandler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         for name, value in hosting.headers_for(self.path.split("?")[0]).items():
-            # HTTPS only, and the file server has already sent its own Content-Type
-            if name not in ("Strict-Transport-Security", "Content-Type"):
+            if name != "Strict-Transport-Security":  # HTTPS only; this preview is plain HTTP
                 self.send_header(name, value)
         super().end_headers()
 
