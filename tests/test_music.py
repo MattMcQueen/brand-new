@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from brandnew.models import Release
 from brandnew.sources import listenbrainz as lb
 
 TODAY = date(2026, 9, 25)
@@ -79,3 +80,27 @@ def test_genre_cache(tmp_path):
     c.save()
     assert lb.GenreCache(path, TODAY).get("x") == ["rock"]
     assert lb.GenreCache(path, TODAY + timedelta(days=31)).get("x") is None
+
+
+def test_direct_covers_skip_the_redirects_and_keep_the_caa_link_as_backup(monkeypatch):
+    caa = "https://coverartarchive.org/release/r/{}-250.jpg"
+    node = "https://ia800.us.archive.org/1/items/mbid-r/mbid-r-{}_thumb250.jpg"
+    answers = {caa.format(1): [node.format(1)],
+               caa.format(2): [None, None, node.format(2)],  # broken copies twice, then a working one
+               caa.format(3): [None, None, None],  # never works: stays on the Cover Art Archive
+               caa.format(4): ["https://example.com/not-a-cover"]}
+    monkeypatch.setattr(lb.net, "final_url", lambda url: answers[url].pop(0) if answers[url] else None)
+
+    def album(i):
+        return Release(kind="music", id=f"m{i}", title="A", by="B", date=TODAY, source="listenbrainz",
+                       amazon_url="", cover=caa.format(i), cover_2x=caa.format(i).replace("-250", "-500"))
+
+    book = Release(kind="books", id="b", title="A", by="B", date=TODAY, source="google-books", amazon_url="",
+                   cover="https://books.google.com/x?id=1&fife=w320")
+    out = lb.direct_covers([album(1), book, album(2), album(3), album(4)])
+    assert [r.id for r in out] == ["m1", "b", "m2", "m3", "m4"]
+    assert out[0].cover == node.format(1) and out[0].cover_backup == caa.format(1)
+    assert out[0].cover_2x == "https://ia800.us.archive.org/1/items/mbid-r/mbid-r-1_thumb500.jpg"
+    assert out[1] is book
+    assert out[2].cover == node.format(2)
+    assert out[3] == album(3) and out[4] == album(4)

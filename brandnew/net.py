@@ -38,6 +38,18 @@ def _is_daily_quota(e: Exception) -> bool:
         return False
 
 
+def final_url(url: str, timeout: int = 20) -> str | None:
+    """Where a link to a picture ends up after its redirects, or None if it doesn't end at a
+    working picture. Only the headers are read: the picture itself isn't downloaded."""
+    req = urllib.request.Request(url, headers={"User-Agent": config.USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            ok = r.status == 200 and r.headers.get_content_maintype() == "image"
+            return r.geturl() if ok else None
+    except (OSError, ValueError):  # URLError, HTTPError and timeouts are all OSErrors
+        return None
+
+
 def get_text(url: str, tries: int = 2, timeout: int = 60) -> str:
     """GET a web page as text (ISFDB pages are Latin-1). Raises RuntimeError after the last try."""
     return _get(url, None, tries, timeout, "text/html", lambda r: r.read().decode(

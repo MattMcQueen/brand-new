@@ -34,7 +34,9 @@
     </span>
     {% endif %}
     {% if r.cover %}
-    <img src="{{ r.cover }}"{% if r.cover_2x %} srcset="{{ r.cover }} 1x, {{ r.cover_2x }} 2x"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+    {# sizes: two cards across on a phone, otherwise about 170-200 pixels (style.css .grid) #}
+    {% set srcset = cover_srcset(r) %}
+    <img src="{{ r.cover }}"{% if srcset %} srcset="{{ srcset }}" sizes="(max-width: 540px) 50vw, 200px"{% endif %}{% if r.cover_backup %} data-backup="{{ r.cover_backup }}"{% endif %} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
     {% endif %}
     {# The date is in the card's text too, so the sticker is hidden from screen readers #}
     {% set sticker = countdown(r.date, today) %}
@@ -112,7 +114,8 @@
       {# A fan of covers from the genre's latest releases (decorative: the link text says it all) #}
       <span class="tile-fan tile-fan-{{ kind }}" aria-hidden="true">
       {% for r in p.covers %}
-        <img src="{{ r.cover }}" alt="" width="{{ 76 if kind == "books" else 92 }}" height="{{ 114 if kind == "books" else 92 }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        {% set srcset = cover_srcset(r) %}
+        <img src="{{ r.cover }}"{% if srcset %} srcset="{{ srcset }}" sizes="{{ 76 if kind == "books" else 92 }}px"{% endif %}{% if r.cover_backup %} data-backup="{{ r.cover_backup }}"{% endif %} alt="" width="{{ 76 if kind == "books" else 92 }}" height="{{ 114 if kind == "books" else 92 }}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       {% else %}
         {{ icon(kind) }}
       {% endfor %}

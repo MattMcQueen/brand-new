@@ -147,7 +147,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 .tile-fan { display: flex; align-items: flex-end; height: 122px; margin-bottom: 8px; }
 .tile-fan img {
   width: 76px; height: 114px; object-fit: cover; border-radius: 4px; background: var(--panel);
-  border: 2px solid var(--surface); box-shadow: 0 2px 8px rgb(0 0 0 / .25); transition: transform .2s ease;
+  border: 2px solid var(--surface); box-shadow: 0 2px 8px rgb(0 0 0 / .25); transition: transform .2s ease, opacity .3s ease;
 }
 .tile-fan-music img { width: 92px; height: 92px; }  /* three still fit the narrowest tile (198px inside) */
 .tile-fan img + img { margin-left: -24px; }
@@ -385,7 +385,9 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
   font-size: .75rem; font-weight: 700; white-space: nowrap; transform: rotate(-6deg);
   box-shadow: 0 2px 6px rgb(0 0 0 / .3);
 }
-.cover img { z-index: 1; transition: transform .35s ease; }
+.cover img { z-index: 1; transition: transform .35s ease, opacity .3s ease; }
+/* Covers fade in as they arrive (early.js marks them loaded) */
+.fade-covers :is(.cover, .tile-fan) img:not(.is-loaded) { opacity: 0; }
 .vinyl {
   position: absolute; top: 12%; left: 12%; width: 76%; aspect-ratio: 1; border-radius: 50%; z-index: 0;  /* a little smaller than the sleeve when it shrinks aside */
   /* label and spindle hole, then a sheen, over the grooves. The light rim keeps it visible on dark backgrounds. */
@@ -446,7 +448,7 @@ a.kicker:hover, .kind-link:hover { text-decoration: underline; }
 /* Short movements the visitor sets off themselves (opening Support me, hovering over a cover, "Surprise me")
    still play, as the blog's Ko-fi widget does; everything else keeps still. */
 @media (prefers-reduced-motion: reduce) {
-  :not(.support-panel, .cover img, .made-cover, .vinyl, .surprise-btn .icon) { transition: none !important; }
+  :not(.support-panel, .cover img, .tile-fan img, .made-cover, .vinyl, .surprise-btn .icon) { transition: none !important; }
 }
 
 /* "Running late" notice (see app.js) */

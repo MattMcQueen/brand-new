@@ -13,8 +13,18 @@ try {
 //    and keeps it if every try fails.
 //    Runs here, not in app.js, so it's listening before any cover starts loading.
 document.addEventListener("error", function (e) {
-  var img = e.target, tries;
+  var img = e.target, tries, backup;
   if (!img || img.tagName !== "IMG" || !img.closest || !img.closest(".tile-fan, .cover")) return;
+  // An album cover linked straight to an Internet Archive server (listenbrainz.direct_covers)
+  // goes back to its Cover Art Archive link first, which can send it to another copy.
+  backup = img.dataset.backup;
+  if (backup) {
+    delete img.dataset.backup;
+    img.classList.add("is-retrying");
+    if (img.srcset) img.srcset = backup + " 250w, " + backup.replace(/-250\.jpg$/, "-500.jpg") + " 500w";
+    img.src = backup;
+    return;
+  }
   tries = Number(img.dataset.tries || 0);
   if (!img.closest(".cover") || tries >= 2) { img.remove(); return; }
   img.dataset.tries = tries + 1;
@@ -23,14 +33,18 @@ document.addEventListener("error", function (e) {
   img.removeAttribute("srcset");  // retry the size the browser chose, and only that
   img.src = src + (src.indexOf("?") < 0 ? "?" : "&") + "retry=" + (tries + 1);  // not a cached failure
 }, true);
-// 3. A card's cover fills its box, trimming the edges. A cover that's a very different shape (a
+// 3. Covers fade in as they arrive rather than popping in: they're hidden until loaded (style.css),
+//    only when this script runs, so without it they still show.
+document.documentElement.classList.add("fade-covers");
+// 4. A card's cover fills its box, trimming the edges. A cover that's a very different shape (a
 //    landscape picture book, a square box set) would lose too much, so it's shown whole instead,
 //    and a book's pages take its shape so it still turns as one book (style.css). Setting --shape
 //    from a script is allowed by the Content Security Policy (only style="" in the HTML isn't).
 document.addEventListener("load", function (e) {
   var img = e.target, box, shape, boxShape;
-  if (!img.classList) return;
+  if (!img.classList || img.tagName !== "IMG") return;
   img.classList.remove("is-retrying");
+  img.classList.add("is-loaded");
   box = img.closest && img.closest(".cover");
   if (!box || !img.naturalWidth || !box.clientWidth) return;
   shape = img.naturalHeight / img.naturalWidth;

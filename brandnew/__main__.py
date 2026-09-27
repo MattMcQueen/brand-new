@@ -55,6 +55,7 @@ def cmd_fetch(args) -> int:
             releases += pipeline.with_fallback(kind, sources[kind], previous, today)
         else:
             releases += [r for r in previous if r.kind == kind]
+    releases = listenbrainz.direct_covers(releases)
     store.save(args.data, releases, now)
     for kind in ("books", "music"):
         print(f"{kind}: {sum(r.kind == kind for r in releases)} releases", file=sys.stderr)

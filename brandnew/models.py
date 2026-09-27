@@ -16,6 +16,7 @@ class Release:
     tags: list[str] = field(default_factory=list)     # descriptive tags shown on the card
     cover: str | None = None
     cover_2x: str | None = None
+    cover_backup: str | None = None  # albums: the Cover Art Archive link, when `cover` goes straight to the Internet Archive
     publisher: str = ""
     info_url: str | None = None  # the source's own page for this release (Google Books requires one)
     popularity: int = 0       # ListenBrainz listener count (music only)

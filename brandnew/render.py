@@ -14,6 +14,7 @@ from markupsafe import Markup
 from . import amazon, config, hosting, shops, store
 from .config import Genre
 from .models import Release
+from .sources import google_books
 from .ukdates import format_date, format_month, format_updated
 
 STATIC = Path(__file__).parent / "static"
@@ -79,6 +80,16 @@ COVER_HUES = 8
 def cover_hue(r: Release) -> int:
     """Which colour scheme a release's made-up cover uses: fixed per release, so it looks the same every day."""
     return int(hashlib.sha1(r.id.encode()).hexdigest()[:8], 16) % COVER_HUES
+
+
+def cover_srcset(r: Release) -> str | None:
+    """The sizes of a cover the browser can choose from (the <img sizes> says how wide it's shown):
+    a Google Books cover comes in any width, a Cover Art Archive one in 250 and 500 pixels."""
+    if not r.cover_2x:
+        return None
+    if "books.google." in r.cover:
+        return google_books.cover_srcset(r.cover)
+    return f"{r.cover} 250w, {r.cover_2x} 500w"
 
 
 def countdown(d: date, today: date) -> str | None:
@@ -198,7 +209,7 @@ def _env(amazon_tag: str | None) -> Environment:
     env.filters["json_ld"] = json_ld
     env.filters["amazon"] = lambda url: amazon.with_tag(url, amazon_tag)
     ids = count(1)
-    env.globals.update(config=config, genre_url=genre_url, countdown=countdown, cover_hue=cover_hue, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
+    env.globals.update(config=config, genre_url=genre_url, countdown=countdown, cover_hue=cover_hue, cover_srcset=cover_srcset, asset=asset_url, logo_svg=logo_svg(), kind_names=config.KIND_NAMES,
                        other_shops=lambda r, today: shops.groups_for(
                            r.kind, r.title, r.by,
                            out_on=format_date(r.date) if r.kind == "music" and r.date > today else ""),
