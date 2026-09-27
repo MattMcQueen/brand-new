@@ -82,12 +82,11 @@
         {% endfor %}
       </ul>
       {% if group.note %}<p class="shops-note">{{ group.note }}</p>{% endif %}
-      {% set trial = trials.get(group.heading) %}
-      {% if trial %}
+      {% for trial in trials if trial.group == group.heading %}
       <p class="shops-note trial">{{ trial.intro }}
         <a href="{{ trial.url }}" rel="{{ config.AFFILIATE_REL }}" target="_blank"
            aria-label="{{ trial.link }}: {{ trial.name }} (affiliate link, opens in a new tab)">{{ trial.link }}</a> (affiliate link)</p>
-      {% endif %}
+      {% endfor %}
       {% endfor %}
       <p class="shops-note">{{ ("The shop and streaming links" if r.kind == "music" else "The shop links") if trials else "These" }} aren't affiliate links, so I earn nothing from them. <a href="/about/#other-shops">About the links</a></p>
     </div>
