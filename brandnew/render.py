@@ -201,24 +201,32 @@ def genre_ld(page: GenrePage) -> list[dict]:
 
 @dataclass(frozen=True)
 class Trial:
-    """A free-trial affiliate line under one of the pop-up's groups of links."""
+    """A trial affiliate line under one of the pop-up's groups of links, also offered on the About page."""
+    group: str   # the heading of the pop-up group it goes under
     name: str
     intro: str
     link: str
     url: str
+    about: str   # what it is, for the About page's list
 
 
-def trials(amazon_tag: str | None) -> dict[str, Trial]:
-    """The trial lines, by the heading of the group they go under. None without a tag: they
+def trials(amazon_tag: str | None) -> list[Trial]:
+    """The trial lines, in the order the About page lists them. None without a tag: they
     couldn't earn anything."""
     if not amazon_tag:
-        return {}
-    return {
-        "Ebooks & audiobooks": Trial("Kindle Unlimited", "Some books are free to read with Kindle Unlimited.",
-                                     "Try it free for 30 days", amazon.with_tag(amazon.KINDLE_UNLIMITED_URL, amazon_tag)),
-        "Listen": Trial("Amazon Music Unlimited", "Amazon Music Unlimited has every new release.",
-                        "Try it free", amazon.with_tag(amazon.MUSIC_UNLIMITED_URL, amazon_tag)),
-    }
+        return []
+    return [
+        Trial("Ebooks & audiobooks", "Kindle Unlimited", "Some books are free to read with Kindle Unlimited.",
+              "Try it free for 30 days", amazon.with_tag(amazon.KINDLE_UNLIMITED_URL, amazon_tag),
+              "ebooks, with some audiobooks and magazines, free for 30 days."),
+        # No "free" or trial length: Audible's offer changes with its promotions.
+        Trial("Ebooks & audiobooks", "Audible", "Audible gives you an audiobook a month.",
+              "Try Audible", amazon.with_tag(amazon.AUDIBLE_URL, amazon_tag),
+              "an audiobook a month, with an offer for new members."),
+        Trial("Listen", "Amazon Music Unlimited", "Amazon Music Unlimited has every new release.",
+              "Try it free", amazon.with_tag(amazon.MUSIC_UNLIMITED_URL, amazon_tag),
+              "ad-free music, including every new release."),
+    ]
 
 
 def _env(amazon_tag: str | None) -> Environment:
