@@ -215,6 +215,8 @@ def _env(amazon_tag: str | None) -> Environment:
                            out_on=format_date(r.date) if r.kind == "music" and r.date > today else ""),
                        amazon_kindle=lambda r: amazon.kindle_url(r.title, r.by),
                        amazon_audible=lambda r: amazon.audible_url(r.title, r.by),
+                       # Without a tag the trial line couldn't earn anything, so it's left out
+                       music_trial=amazon.with_tag(amazon.MUSIC_UNLIMITED_URL, amazon_tag) if amazon_tag else "",
                        bookshops=shops.BOOKSHOPS, digital_shops=shops.DIGITAL_SHOPS, record_shops=shops.RECORD_SHOPS,
                        streaming=shops.STREAMING, next_id=lambda: next(ids))  # unique element ids (a book can be on a page twice)
     return env
