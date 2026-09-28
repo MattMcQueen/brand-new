@@ -9,7 +9,8 @@ CSP = "; ".join([
     "script-src 'self' https://static.cloudflareinsights.com",
     "style-src 'self'",
     "font-src 'self'",
-    # covers: Google Books, and the Cover Art Archive, which redirects to archive.org's servers
+    # covers: our own copies of album covers ('self'), Google Books, and the Cover Art Archive (which
+    # redirects to archive.org's servers) for albums we have no copy of
     "img-src 'self' https://books.google.com https://*.googleusercontent.com "
     "https://coverartarchive.org https://archive.org https://*.archive.org",
     "frame-src https://ko-fi.com",        # the Support me panel, only once it's opened
@@ -47,6 +48,8 @@ def config() -> dict:
         "trailingSlash": "auto",
         "routes": [
             {"route": "/static/*", "headers": {"Cache-Control": STATIC_CACHE}},
+            # our copies of album covers: named after the Cover Art Archive's image ID, so never change
+            {"route": "/covers/*", "headers": {"Cache-Control": STATIC_CACHE}},
             # Genre pages that moved: search engines and bookmarks still have the old address
             *({"route": f"{old}*", "redirect": new, "statusCode": 301} for old, new in MOVED.items()),
         ],

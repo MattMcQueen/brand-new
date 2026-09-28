@@ -115,8 +115,8 @@ jobs:
           cache-dependency-path: pyproject.toml
       - run: pip install .
 
-      # .cache holds the last run's releases (the fallback if a source fails) and the
-      # MusicBrainz artist genres, so each run only looks up new artists.
+      # .cache holds the last run's releases (the fallback if a source fails), the MusicBrainz
+      # artist genres, so each run only looks up new artists, and our copies of album covers.
       - name: Restore last run's data
         uses: actions/cache/restore@v6
         with:
@@ -130,6 +130,15 @@ jobs:
         env:
           GOOGLE_BOOKS_KEY: ${{ secrets.GOOGLE_BOOKS_KEY }}
         run: python -m brandnew fetch --previous .cache/releases.json ${{ inputs.isfdb_only && '--isfdb-only' || '' }}
+
+      # Our own copies of album covers (brandnew/covers.py), kept in .cache/covers: only covers not
+      # already there are downloaded, and ones no album uses any more are deleted. A problem here
+      # never stops the build: albums without a copy just link to the Internet Archive as before.
+      - name: Copy album covers
+        if: hashFiles('.cache/releases.json') != ''
+        continue-on-error: true
+        timeout-minutes: 15
+        run: python -m brandnew covers
 
       - name: Save data for the next run
         if: always() && steps.fetch.outcome == 'success'

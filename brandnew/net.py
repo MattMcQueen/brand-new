@@ -50,6 +50,18 @@ def final_url(url: str, timeout: int = 20) -> str | None:
         return None
 
 
+def get_jpeg(url: str, max_bytes: int, timeout: int = 30) -> bytes | None:
+    """Download a JPEG picture, or None if it doesn't arrive as one (an error page, a broken
+    copy, something else entirely) or is bigger than `max_bytes`."""
+    req = urllib.request.Request(url, headers={"User-Agent": config.USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            body = r.read(max_bytes + 1) if r.status == 200 else b""
+    except (OSError, ValueError):  # URLError, HTTPError and timeouts are all OSErrors
+        return None
+    return body if len(body) <= max_bytes and body.startswith(b"\xff\xd8\xff") else None
+
+
 def get_text(url: str, tries: int = 2, timeout: int = 60) -> str:
     """GET a web page as text (ISFDB pages are Latin-1). Raises RuntimeError after the last try."""
     return _get(url, None, tries, timeout, "text/html", lambda r: r.read().decode(
