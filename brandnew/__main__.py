@@ -1,4 +1,4 @@
-"""Command line: python -m brandnew fetch | build | serve | bluesky"""
+"""Command line: python -m brandnew fetch | covers | build | serve | bluesky"""
 import argparse
 import functools
 import http.server
@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import bluesky, config, hosting, pipeline, render, sample, store
+from . import bluesky, config, covers, hosting, pipeline, render, sample, store
 from .sources import google_books, isfdb, listenbrainz
 from .ukdates import in_fetch_window, now_uk
 
@@ -16,6 +16,7 @@ TOO_FEW_RELEASES = 3
 DEFAULT_OUT = Path("dist")
 GENRE_CACHE = Path(".cache/artist-genres.json")
 ISFDB_CACHE = Path(".cache/isfdb.json")
+COVERS = Path(".cache/covers")  # our copies of album covers (covers.py)
 
 
 def fetch_books(today) -> list:
@@ -71,6 +72,19 @@ def load_for_site(path: Path):
     return generated, google_books.merge_books(releases)
 
 
+def cmd_covers(args) -> int:
+    if not args.data.exists():
+        print(f"No data file at {args.data}.", file=sys.stderr)
+        return 1
+    _, releases = store.load(args.data)
+    s = covers.sync(releases, args.covers)
+    if summary := os.environ.get("GITHUB_STEP_SUMMARY"):  # in the workflow: show the counts on the run's page
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write(f"### Album covers\n\n{s['kept']} already copied, {s['downloaded']} downloaded, "
+                    f"{s['failed']} failed, {s['removed']} no longer used removed; {s['mb']} MB in all.\n\n")
+    return 0
+
+
 def cmd_build(args) -> int:
     now = now_uk()
     if args.sample:
@@ -85,8 +99,11 @@ def cmd_build(args) -> int:
             if n < args.min_releases:
                 print(f"Only {n} {kind} releases (need {args.min_releases}); not building.", file=sys.stderr)
                 return TOO_FEW_RELEASES
+    releases, used = covers.use_local(releases, args.covers)
     tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
     pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
+    covers.publish(args.covers, used, args.out)
+    print(f"{len(used) // len(covers.SIZES)} album covers served from our own hosting", file=sys.stderr)
     print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/",
           file=sys.stderr)
     return 0
@@ -159,12 +176,17 @@ def main(argv=None) -> int:
     f.add_argument("--isfdb-only", action="store_true",
                    help="keep the previous run's data and just add the ISFDB's books (saves Google Books quota)")
     f.set_defaults(func=cmd_fetch)
+    c = sub.add_parser("covers", help="download new album covers and delete unused ones")
+    c.add_argument("--data", type=Path, default=DEFAULT_DATA)
+    c.add_argument("--covers", type=Path, default=COVERS)
+    c.set_defaults(func=cmd_covers)
     b = sub.add_parser("build", help="render the site into dist/")
     b.add_argument("--data", type=Path, default=DEFAULT_DATA)
     b.add_argument("--out", type=Path, default=DEFAULT_OUT)
     b.add_argument("--sample", action="store_true", help="use made-up releases")
     b.add_argument("--min-releases", type=int, default=0,
                    help="refuse to build if books or music has fewer releases than this")
+    b.add_argument("--covers", type=Path, default=COVERS, help="our copies of album covers, where there are any")
     b.set_defaults(func=cmd_build)
     s = sub.add_parser("serve", help="preview dist/ locally")
     s.add_argument("--out", type=Path, default=DEFAULT_OUT)

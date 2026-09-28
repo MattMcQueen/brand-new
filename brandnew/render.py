@@ -172,7 +172,8 @@ def _release_ld(r: Release, genre: Genre) -> dict:
         item |= {"@type": "MusicAlbum", "byArtist": {"@type": "MusicGroup", "name": r.by},
                  "url": f"https://musicbrainz.org/release-group/{r.id}"}
     if r.cover:
-        item["image"] = r.cover
+        # our own copy of an album cover is linked from the site root; structured data needs the full address
+        item["image"] = config.SITE_URL + r.cover if r.cover.startswith("/") else r.cover
     return item
 
 
