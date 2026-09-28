@@ -81,7 +81,8 @@ def cmd_covers(args) -> int:
     if summary := os.environ.get("GITHUB_STEP_SUMMARY"):  # in the workflow: show the counts on the run's page
         with open(summary, "a", encoding="utf-8") as f:
             f.write(f"### Album covers\n\n{s['kept']} already copied, {s['downloaded']} downloaded, "
-                    f"{s['failed']} failed, {s['removed']} no longer used removed; {s['mb']} MB in all.\n\n")
+                    f"{s['failed']} failed ({s['broken']} albums shown without a cover until theirs can be "
+                    f"downloaded), {s['removed']} no longer used removed; {s['mb']} MB in all.\n\n")
     return 0
 
 
@@ -103,7 +104,7 @@ def cmd_build(args) -> int:
     tag = os.environ.get("AMAZON_TAG") or config.AMAZON_TAG
     pages = render.build(releases, generated, args.out, now.date(), amazon_tag=tag)
     covers.publish(args.covers, used, args.out)
-    print(f"{len(used) // len(covers.SIZES)} album covers served from our own hosting", file=sys.stderr)
+    print(f"{sum(n.endswith('-250.jpg') for n in used)} album covers served from our own hosting", file=sys.stderr)
     print(f"Built {len(pages)} pages from {len(releases)} releases into {args.out}/",
           file=sys.stderr)
     return 0

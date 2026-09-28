@@ -5,7 +5,14 @@ copies, and they load quickly anyway.
 Copies are kept in a folder the workflow carries from run to run (.cache/covers), named after the
 Cover Art Archive's image ID, which never changes: a cover already there isn't downloaded again,
 and one that no album in the data uses any more is deleted. The build publishes the ones in use
-at /covers/. An album whose copy is missing keeps linking to the Internet Archive."""
+at /covers/.
+
+An album whose cover couldn't be downloaded on the last run (the Cover Art Archive's own copy is
+broken: it answers with an error, often after 10+ seconds) is listed in BROKEN, and the site shows
+the record in its sleeve straight away rather than waiting on the error. Each run tries again, so
+the cover comes back once the archive's copy works. Any other album without a copy (say the
+folder was lost) keeps linking to the Internet Archive."""
+import json
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -19,6 +26,7 @@ SIZES = (250, 500)
 MAX_BYTES = 2_000_000   # a 500-pixel cover is well under this; anything bigger isn't a normal cover
 WORKERS = 8
 URL_PATH = "/covers/"
+BROKEN = "broken.json"  # in the covers folder: the albums whose small cover couldn't be downloaded
 # A Cover Art Archive link: release ID, then image ID, then size
 CAA = re.compile(r"^https://coverartarchive\.org/release/([0-9a-f-]{36})/(\d+)-(?:250|500)\.jpg$")
 
@@ -72,29 +80,47 @@ def sync(releases: list[Release], folder: Path, download=net.get_jpeg) -> dict:
 
     with ThreadPoolExecutor(WORKERS) as pool:
         got = sum(pool.map(fetch, todo))
+    # the small cover is the one every page uses: without it the album has no cover of ours
+    broken = sorted({n.removesuffix(f"-{SIZES[0]}.jpg") for n in wanted
+                     if n.endswith(f"-{SIZES[0]}.jpg") and not (folder / n).is_file()})
+    (folder / BROKEN).write_text(json.dumps(broken, indent=1) + "\n", encoding="utf-8")
     removed = 0
     for p in folder.iterdir():
-        if p.name not in wanted:
+        if p.name not in wanted and p.name != BROKEN:
             p.unlink()
             removed += 1
     stats = {"kept": len(wanted) - len(todo), "downloaded": got, "failed": len(todo) - got,
-             "removed": removed, "mb": round(sum(p.stat().st_size for p in folder.glob("*.jpg")) / 1e6, 1)}
-    print(f"  Album covers: {stats['kept']} already here, {got} downloaded, {stats['failed']} failed, "
-          f"{removed} no longer used removed; {stats['mb']} MB", file=sys.stderr)
+             "broken": len(broken), "removed": removed,
+             "mb": round(sum(p.stat().st_size for p in folder.glob("*.jpg")) / 1e6, 1)}
+    print(f"  Album covers: {stats['kept']} already here, {got} downloaded, {stats['failed']} failed "
+          f"({len(broken)} albums shown without a cover), {removed} no longer used removed; {stats['mb']} MB",
+          file=sys.stderr)
     return stats
 
 
+def _broken(folder: Path) -> set[str]:
+    try:
+        return set(json.loads((folder / BROKEN).read_text(encoding="utf-8")))
+    except (OSError, ValueError):  # no list yet (or a damaged one): treat every cover as working
+        return set()
+
+
 def use_local(releases: list[Release], folder: Path) -> tuple[list[Release], set[str]]:
-    """Point albums whose cover is in `folder` (both sizes) at our copy, keeping the Cover Art
-    Archive link as the backup early.js falls back on. Returns the releases and the file names used."""
+    """Point albums whose cover is in `folder` at our copy, keeping the Cover Art Archive link as
+    the backup early.js falls back on, and take the cover off albums whose cover is broken, so
+    they show the record straight away. Returns the releases and the file names used."""
+    broken = _broken(folder)
     out, used = [], set()
     for r in releases:
         k = key(r)
-        names = [file_name(k, s) for s in SIZES] if k else []
-        if names and all((folder / n).is_file() for n in names):
-            backup = r.cover_backup or r.cover
-            r = replace(r, cover=URL_PATH + names[0], cover_2x=URL_PATH + names[1], cover_backup=backup)
-            used.update(names)
+        small, large = (file_name(k, s) for s in SIZES) if k else (None, None)
+        if k and (folder / small).is_file():
+            has_large = (folder / large).is_file()  # without it, the small one is used at every size
+            r = replace(r, cover=URL_PATH + small, cover_2x=URL_PATH + large if has_large else None,
+                        cover_backup=r.cover_backup or r.cover)
+            used.update([small, large] if has_large else [small])
+        elif k in broken:
+            r = replace(r, cover=None, cover_2x=None, cover_backup=None)
         out.append(r)
     return out, used
 
