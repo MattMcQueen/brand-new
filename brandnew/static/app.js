@@ -39,10 +39,20 @@
     frame.loading = "eager";
     frameBox.appendChild(frame);
   }
+  // A click outside an open popover closes it (light dismiss) before the click event arrives. So
+  // when the click lands on a Ko-fi link while the panel is open, the panel is already closed by
+  // the time the handler runs, and the handler would open it straight back up: the link could
+  // never close it. So what counts is whether it was open when the pointer went down.
+  var openAtPointerDown = false;
+  document.addEventListener("pointerdown", function () { openAtPointerDown = false; }, true);
   document.querySelectorAll("[data-kofi-panel]").forEach(function (link) {
+    link.addEventListener("pointerdown", function () { openAtPointerDown = panel.matches(":popover-open"); });
     link.addEventListener("click", function (e) {
       e.preventDefault();
-      if (panel.matches(":popover-open")) { panel.hidePopover(); return; }
+      // The second test covers the keyboard, which has no pointer-down.
+      var wasOpen = openAtPointerDown || panel.matches(":popover-open");
+      openAtPointerDown = false;
+      if (wasOpen) { if (panel.matches(":popover-open")) panel.hidePopover(); return; }
       load();
       panel.showPopover();
     });
