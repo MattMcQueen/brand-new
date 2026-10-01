@@ -3,11 +3,11 @@ name: Build site
 # Tests run on every pull request and push. The site is rebuilt:
 #   - once a day, with fresh data. An Azure Logic App (infra/daily-trigger.json) starts it at
 #     09:17, 11:17 and 15:17 UK time through "Run workflow" with skip_if_fresh ticked, as
-#     GitHub's own scheduled runs are best-effort and often don't fire at all. GitHub's three
-#     slots (09:17, 11:47 and 15:17 BST; cron is in UTC) stay as a backup. All are after Google
-#     Books' daily quota resets at midnight Pacific (08:00 UK time). The "due" job stops a slot
-#     early when the live site already has today's data, so only the first slot that runs does
-#     the work;
+#     GitHub's own scheduled runs are best-effort and usually start hours late or not at all.
+#     One GitHub slot (15:17 BST, 14:17 GMT; cron is in UTC) stays as a backup in case the
+#     Logic App stops. All are after Google Books' daily quota resets at midnight Pacific
+#     (08:00 UK time). The "due" job stops a run early when the live site already has today's
+#     data, so only the first one that runs does the work;
 #   - on every push to main, reusing the morning's data;
 #   - by hand from the Actions tab ("Run workflow"), with or without fresh data, or adding only
 #     the ISFDB's books to the last run's data.
@@ -17,8 +17,6 @@ name: Build site
 
 on:
   schedule:
-    - cron: "17 8 * * *"
-    - cron: "47 10 * * *"
     - cron: "17 14 * * *"
   push:
     branches: [main]
