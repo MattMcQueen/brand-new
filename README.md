@@ -7,9 +7,11 @@ Live at https://brand-new.matt-rarely-writes.co.uk.
 
 A Python script fetches releases and renders plain HTML pages into `dist/`. The
 [Build site](.github/workflows/build.yml) GitHub Action runs the tests on every pull request and
-rebuilds the site with fresh data once a day and whenever `main` changes. The daily run has three
-scheduled slots, 09:17, 11:47 and 15:17 UK time in summer (an hour earlier in winter), because
-GitHub's schedules are best-effort; a slot stops early when the live site already has today's data.
+rebuilds the site with fresh data once a day and whenever `main` changes. The daily run is started
+at 09:17, 11:17 and 15:17 UK time by an Azure Logic App ([infra/daily-trigger.json](infra/daily-trigger.json)),
+because GitHub's own schedules are best-effort and usually start hours late. One GitHub scheduled slot
+(15:17 UK time in summer, 14:17 in winter) stays as a backup in case the Logic App stops. A run stops
+early when the live site already has today's data.
 Each run's data and MusicBrainz genre lookups are kept in the Actions cache for the next run. The
 built site is attached to each run for a week, and runs on `main` deploy it to Azure Static Web Apps
 (only while the repository variable `DEPLOY_ENABLED` is `true`).
