@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from itertools import count, groupby
 from pathlib import Path
 
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import BytecodeCache, Environment, PackageLoader, select_autoescape
 from markupsafe import Markup
 
 from . import amazon, config, hosting, shops, store
@@ -230,10 +230,29 @@ def trials(amazon_tag: str | None) -> list[Trial]:
     ]
 
 
+class _CompiledTemplates(BytecodeCache):
+    """Keeps compiled templates in memory, so a second build in the same process (the tests make
+    dozens) doesn't parse and compile them again. Jinja keys each one on its source, so an edited
+    template is compiled afresh."""
+
+    def __init__(self):
+        self._code: dict[str, bytes] = {}
+
+    def load_bytecode(self, bucket):
+        if (code := self._code.get(bucket.key)) is not None:
+            bucket.bytecode_from_string(code)
+
+    def dump_bytecode(self, bucket):
+        self._code[bucket.key] = bucket.bytecode_to_string()
+
+
+_COMPILED = _CompiledTemplates()
+
+
 def _env(amazon_tag: str | None) -> Environment:
     env = Environment(loader=PackageLoader("brandnew", "templates"),
                       autoescape=select_autoescape(["html", "xml"]),
-                      trim_blocks=True, lstrip_blocks=True)
+                      trim_blocks=True, lstrip_blocks=True, bytecode_cache=_COMPILED)
     env.filters["uk_date"] = format_date
     env.filters["lower_name"] = lower_name
     env.filters["names"] = names

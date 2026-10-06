@@ -54,21 +54,19 @@ def test_build_site(tmp_path):
     assert (tmp_path / "data" / "releases.json").exists()
 
 
-def test_cards_have_the_same_parts_so_rows_line_up(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    html = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+def test_cards_have_the_same_parts_so_rows_line_up(site):
+    html = (site / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     cards = re.findall(r'<li class="card" data-id="[^"]*">(.*?)\n</li>', html, re.S)  # the card's own </li> is on its own line
     parts = [re.findall(r'^  <\w+ class="([\w-]+)', c, re.M) for c in cards]
     assert cards and all(p == ["cover", "card-title", "card-by", "card-date", "card-extra", "card-buy", "card-source"]
                          for p in parts)
 
 
-def test_about_page_explains_affiliate_links(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+def test_about_page_explains_affiliate_links(empty_site):
+    about = (empty_site / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="affiliate-links"' in about and "affiliate link" in about
     assert "You don't pay a penny more" in about and f"tag={config.AMAZON_TAG}" in about
-    assert 'href="/about/#affiliate-links"' in (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert 'href="/about/#affiliate-links"' in (empty_site / "index.html").read_text(encoding="utf-8")
 
 
 def test_default_tag_is_used(tmp_path, monkeypatch):
@@ -90,9 +88,8 @@ def test_build_refuses_thin_data(tmp_path):
     assert main(["build", "--data", str(data), "--out", str(out), "--min-releases", "10"]) == 0
 
 
-def test_books_and_albums_have_other_shops(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+def test_books_and_albums_have_other_shops(site):
+    books = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     ids = re.findall(r'<div class="shops" id="([^"]+)" popover>', books)
     assert ids and len(ids) == len(set(ids)) == books.count('class="more-shops"')
     assert all(f'popovertarget="{i}"' in books for i in ids)
@@ -102,11 +99,11 @@ def test_books_and_albums_have_other_shops(tmp_path):
     formats = re.findall(r'<a href="(https://www\.amazon\.co\.uk/s\?[^"]+)" rel="([^"]+)"', books)
     assert any("i=digital-text" in h for h, _ in formats) and any("i=audible" in h for h, _ in formats)
     assert all("tag=" not in h or rel == config.AFFILIATE_REL for h, rel in formats)
-    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    music = (site / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert music.count('class="more-shops"') == music.count('class="card"') > 0
     assert "Record shops" in music and "hmv.com/search?searchtext=" in music
     assert "Also on Amazon" not in music and "Ebooks &amp; audiobooks" not in music
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    about = (site / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="other-shops"' in about
     chips = [re.findall(r"<li>([^<]+)</li>", ul) for ul in re.findall(r'<ul class="shop-chips" role="list">(.*?)</ul>', about)]
     assert chips == [["Waterstones", "Bookshop.org", "Foyles", "Blackwell&#39;s", "Hive"],
@@ -115,9 +112,8 @@ def test_books_and_albums_have_other_shops(tmp_path):
                      ["HMV", "Rough Trade", "Norman Records", "Banquet Records", "Resident"]]
 
 
-def test_about_page_sections_can_be_jumped_to(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+def test_about_page_sections_can_be_jumped_to(empty_site):
+    about = (empty_site / "about" / "index.html").read_text(encoding="utf-8")
     nav = re.search(r'<nav class="on-page" aria-label="On this page">(.*?)</nav>', about, re.S).group(1)
     targets = re.findall(r'href="#([\w-]+)"', nav)
     assert targets == ["limitations", "affiliate-links", "other-shops", "data", "privacy", "support"]
@@ -136,68 +132,62 @@ def test_rebuild_empties_the_output_folder_but_keeps_it(tmp_path):
     assert (out / "index.html").exists() and out.stat().st_ino == before
 
 
-def test_static_files_are_fingerprinted(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+def test_static_files_are_fingerprinted(empty_site):
+    home = (empty_site / "index.html").read_text(encoding="utf-8")
     assert re.search(r'href="/static/style\.css\?v=[0-9a-f]{8}"', home)
     assert re.search(r'src="/static/app\.js\?v=[0-9a-f]{8}"', home)
     assert render.asset_url("style.css") != render.asset_url("app.js")
 
 
-def test_about_page_explains_what_the_site_cant_do(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+def test_about_page_explains_what_the_site_cant_do(empty_site):
+    about = (empty_site / "about" / "index.html").read_text(encoding="utf-8")
     assert 'id="limitations"' in about
     assert "price comparison" in about and "in stock" in about and "open a search" in about
 
 
-def test_header_logo_is_the_favicon(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+def test_header_logo_is_the_favicon(empty_site):
+    home = (empty_site / "index.html").read_text(encoding="utf-8")
     assert '<svg class="logo-mark"' in home and 'aria-hidden="true"' in home
     assert re.search(r'<link rel="icon" href="/static/favicon\.svg\?v=[0-9a-f]{8}"', home)
     assert render.logo_svg().count("<polygon") == 1  # the sticker outline
 
 
-def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+def test_kofi_button_and_line_load_nothing_from_kofi_until_clicked(site):
     for page in ("index.html", "books/horror/index.html", "about/index.html"):
-        html = (tmp_path / page).read_text(encoding="utf-8")
+        html = (site / page).read_text(encoding="utf-8")
         assert 'class="support-btn"' in html and 'id="kofi-panel" popover' in html
         assert "<iframe" not in html and "ko-fi.com/cdn" not in html and "storage.ko-fi.com" not in html
-    assert 'class="kofi-line"' in (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
-    assert 'class="kofi-line"' in (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert "Found something new? <a" in (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert "Support me with a coffee on Ko-fi →" in (tmp_path / "index.html").read_text(encoding="utf-8")
-    assert 'class="kofi-line"' not in (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
-    assert 'class="kofi-line"' not in (tmp_path / "404.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' in (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' in (site / "index.html").read_text(encoding="utf-8")
+    assert "Found something new? <a" in (site / "index.html").read_text(encoding="utf-8")
+    assert "Support me with a coffee on Ko-fi →" in (site / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' not in (site / "about" / "index.html").read_text(encoding="utf-8")
+    assert 'class="kofi-line"' not in (site / "404.html").read_text(encoding="utf-8")
     # The floating button replaced the footer's Ko-fi link.
-    footer = (tmp_path / "index.html").read_text(encoding="utf-8").split('<footer class="site-footer">')[1]
+    footer = (site / "index.html").read_text(encoding="utf-8").split('<footer class="site-footer">')[1]
     assert "Buy me a coffee" not in footer.split("</footer>")[0]
 
 
-def test_books_and_music_have_their_own_pages(tmp_path):
+def test_books_and_music_have_their_own_pages(site):
     releases = sample.releases(TODAY)
-    pages = render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    assert "/books/" in pages and "/music/" in pages
-    books = (tmp_path / "books" / "index.html").read_text(encoding="utf-8")
+    assert (site / "books" / "index.html").exists() and (site / "music" / "index.html").exists()
+    books = (site / "books" / "index.html").read_text(encoding="utf-8")
     assert '<h1>Books</h1>' in books and 'href="/books/horror/"' in books and "powered by Google" in books
     assert 'href="/books/" aria-current="page"' in books
     # every recent book once, even when it's in more than one genre
     recent_ids = {r.id for r in render.recent([r for r in releases if r.kind == "books"], TODAY).releases}
     assert len(re.findall(r'<li class="card" data-id=', books)) == len(recent_ids) > 0
-    music = (tmp_path / "music" / "index.html").read_text(encoding="utf-8")
+    music = (site / "music" / "index.html").read_text(encoding="utf-8")
     assert "powered by Google" not in music and 'href="/music/rock/"' in music
-    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    genre = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert 'href="/books/" aria-current="true"' in genre and '<a class="kicker" href="/books/">' in genre
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    home = (site / "index.html").read_text(encoding="utf-8")
     assert 'aria-current' not in home.split("</nav>")[0] and '<a class="kind-link" href="/music/">' in home
-    assert f"{config.SITE_URL}/books/</loc>" in (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
+    assert f"{config.SITE_URL}/books/</loc>" in (site / "sitemap.xml").read_text(encoding="utf-8")
 
 
-def test_link_previews(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+def test_link_previews(site):
+    genre = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert '<meta property="og:url" content="https://brand-new.matt-rarely-writes.co.uk/books/horror/">' in genre
     assert re.search(r'<meta property="og:image" content="https://brand-new\.matt-rarely-writes\.co\.uk'
                      r'/static/share\.png\?v=[0-9a-f]{8}">', genre)
@@ -205,7 +195,7 @@ def test_link_previews(tmp_path):
                      r'two weeks) and \d+ due over the next three months\.">', genre)
     assert '<meta name="twitter:card" content="summary_large_image">' in genre
     assert '<meta name="msvalidate.01" content="43876E90C7D03768DD371FD4A72AF166">' in genre
-    assert (tmp_path / "static" / "share.png").read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+    assert (site / "static" / "share.png").read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
     assert render.lower_name("Tech & AI") == "tech & AI"
 
 
@@ -219,9 +209,8 @@ def test_running_late_notice_is_in_every_page_but_hidden(tmp_path):
         assert "last updated on Friday 25 September 2026 at 09:49 BST. The daily update is running late" in html
 
 
-def test_icons_are_defined_once_and_support_is_a_landmark(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+def test_icons_are_defined_once_and_support_is_a_landmark(site):
+    html = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert html.count('<symbol id="icon-external"') == 1                     # drawn once...
     assert html.count('<use href="#icon-external"/>') > 5                     # ...used many times
     assert not re.search(r'<svg class="icon"[^>]*>(?:(?!</svg>).)*<path', html, re.S)  # icons only <use>
@@ -229,16 +218,15 @@ def test_icons_are_defined_once_and_support_is_a_landmark(tmp_path):
                      html, re.S)
 
 
-def test_home_screen_icons_and_manifest(tmp_path):
+def test_home_screen_icons_and_manifest(empty_site):
     import json
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    home = (empty_site / "index.html").read_text(encoding="utf-8")
     assert re.search(r'<link rel="apple-touch-icon" href="/static/icon-180\.png\?v=[0-9a-f]{8}">', home)
     assert re.search(r'<link rel="manifest" href="/static/manifest\.webmanifest\?v=[0-9a-f]{8}">', home)
-    manifest = json.loads((tmp_path / "static" / "manifest.webmanifest").read_text(encoding="utf-8"))
+    manifest = json.loads((empty_site / "static" / "manifest.webmanifest").read_text(encoding="utf-8"))
     assert manifest["short_name"] == "Brand New" and manifest["start_url"] == "/"
     for icon in manifest["icons"]:  # icon paths are relative to the manifest, in /static/
-        png = (tmp_path / "static" / icon["src"]).read_bytes()
+        png = (empty_site / "static" / icon["src"]).read_bytes()
         size = int(icon["sizes"].split("x")[0])
         assert png[:8] == b"\x89PNG\r\n\x1a\n" and int.from_bytes(png[16:20], "big") == size
 
@@ -247,21 +235,19 @@ def _ld(html: str) -> list:
     return [json.loads(m) for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)]
 
 
-def test_sitemap_lastmod(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    sitemap = (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
+def test_sitemap_lastmod(site):
+    sitemap = (site / "sitemap.xml").read_text(encoding="utf-8")
     assert f"<loc>{config.SITE_URL}/books/horror/</loc><lastmod>2026-09-25</lastmod>" in sitemap
     assert f"<loc>{config.SITE_URL}/about/</loc></url>" in sitemap
 
 
-def test_structured_data(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    home = _ld((tmp_path / "index.html").read_text(encoding="utf-8"))
+def test_structured_data(site):
+    home = _ld((site / "index.html").read_text(encoding="utf-8"))
     assert home == [{"@context": "https://schema.org", "@type": "WebSite", "name": "Brand New",
                      "url": f"{config.SITE_URL}/"}]
-    assert _ld((tmp_path / "about" / "index.html").read_text(encoding="utf-8")) == []
+    assert _ld((site / "about" / "index.html").read_text(encoding="utf-8")) == []
 
-    genre = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    genre = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     collection, crumbs = _ld(genre)[0]
     items = collection["mainEntity"]["itemListElement"]
     assert len(items) == collection["mainEntity"]["numberOfItems"] == genre.count('class="buy"')
@@ -270,7 +256,7 @@ def test_structured_data(tmp_path):
     assert [c["name"] for c in crumbs["itemListElement"]] == ["Brand New", "Books", "Horror"]
     assert crumbs["itemListElement"][2]["item"] == f"{config.SITE_URL}/books/horror/"
 
-    rock = _ld((tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8"))[0]
+    rock = _ld((site / "music" / "rock" / "index.html").read_text(encoding="utf-8"))[0]
     album = rock[0]["mainEntity"]["itemListElement"][0]["item"]
     assert album["@type"] == "MusicAlbum" and album["byArtist"]["@type"] == "MusicGroup"
 
@@ -298,16 +284,15 @@ def test_tile_covers_prefer_releases_no_earlier_tile_used():
     assert [r.id for r in indie.covers] == ["r4", "r0"]  # its own first; the shared one only to fill up
 
 
-def test_tiles_show_a_cover_fan_or_the_kind_icon(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+def test_tiles_show_a_cover_fan_or_the_kind_icon(site):
+    home = (site / "index.html").read_text(encoding="utf-8")
     fans = re.findall(r'<span class="tile-fan tile-fan-(books|music)" aria-hidden="true">(.*?)</span>', home, re.S)
     assert len(fans) == len(config.ALL_GENRES)
     for kind, fan in fans:
         imgs = fan.count("<img ")
         assert imgs <= 5 and (imgs or f'href="#icon-{kind}"' in fan)  # three shown, up to two spares
         assert imgs == fan.count('alt=""') == fan.count('referrerpolicy="no-referrer"')
-    assert '<span class="tile-fan' in (tmp_path / "books" / "index.html").read_text(encoding="utf-8")
+    assert '<span class="tile-fan' in (site / "books" / "index.html").read_text(encoding="utf-8")
 
 
 def test_countdown_stickers():
@@ -330,16 +315,15 @@ def test_cards_get_stickers_and_albums_get_a_record(tmp_path):
     assert rock.count('<span class="vinyl" aria-hidden="true"></span>') == rock.count('<li class="card"') == 1
 
 
-def test_surprise_me_is_on_the_home_kind_and_genre_pages(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+def test_surprise_me_is_on_the_home_kind_and_genre_pages(site):
     for page, kind in (("index.html", ""), ("books/index.html", "books"), ("music/index.html", "music")):
-        html = (tmp_path / page).read_text(encoding="utf-8")
+        html = (site / page).read_text(encoding="utf-8")
         assert re.search(rf'<button class="surprise-btn" type="button" data-surprise="{kind}" hidden', html)
         assert '<div class="surprise" id="surprise" popover' in html
-    horror = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    horror = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert re.search(r'<button class="surprise-btn" type="button" data-surprise="books" data-genre="horror" hidden\s+'
                      r'title="Pick a random horror book"', horror)
-    assert (tmp_path / "data" / "releases.json").exists()  # what the button picks from
+    assert (site / "data" / "releases.json").exists()  # what the button picks from
 
 
 def test_every_book_card_has_a_made_up_cover_to_fall_back_on(tmp_path):
@@ -375,9 +359,8 @@ def test_older_data_with_isbn_links_builds_with_searches(tmp_path):
     assert 'href="https://uk.bookshop.org/search?keywords=The+Thoroughbreds+Elin+Hilderbrand"' in html
 
 
-def test_about_page_says_every_link_is_a_search(tmp_path):
-    render.build([], datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+def test_about_page_says_every_link_is_a_search(empty_site):
+    about = (empty_site / "about" / "index.html").read_text(encoding="utf-8")
     assert "Every link opens a search" in about and "straight to the book" not in about
     assert "Amazon Music included" in about and "—" not in about
 
@@ -403,9 +386,8 @@ def test_streaming_links_for_upcoming_albums_come_after_record_shops(tmp_path):
     assert "Out on" not in popovers["Out Today"]
 
 
-def test_kindle_and_audible_are_small_buttons_under_the_amazon_one(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
-    html = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+def test_kindle_and_audible_are_small_buttons_under_the_amazon_one(tagged_site):
+    html = (tagged_site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     rows = re.findall(r'</a>\s*<div class="amazon-formats" role="group" aria-label="Also on Amazon">(.*?)</div>', html, re.S)
     assert rows and len(rows) == html.count('class="buy"')
     for row in rows:
@@ -464,22 +446,20 @@ def test_covers_offer_sizes_so_the_browser_loads_the_smallest_sharp_one(tmp_path
     assert 'sizes="76px"' in home and 'sizes="92px"' in home  # the genre tiles' small covers
 
 
-def test_albums_offer_a_music_unlimited_trial_under_the_streaming_links(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
-    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+def test_albums_offer_a_music_unlimited_trial_under_the_streaming_links(tagged_site):
+    music = (tagged_site / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     trials = re.findall(r'<p class="shops-note trial">.*?<a href="([^"]+)" rel="([^"]+)"', music, re.S)
     assert len(trials) == music.count('class="more-shops"') > 0
     assert all(href == "https://www.amazon.co.uk/unlimited?tag=test-21" and rel == config.AFFILIATE_REL
                for href, rel in trials)
     assert "These aren't affiliate links" not in music
     assert "The shop and streaming links aren't affiliate links" in music
-    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    books = (tagged_site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert "/unlimited" not in books and "The shop links aren't affiliate links" in books
 
 
-def test_books_offer_a_kindle_unlimited_trial_under_the_ebook_shops(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
-    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+def test_books_offer_a_kindle_unlimited_trial_under_the_ebook_shops(tagged_site):
+    books = (tagged_site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     trials = re.findall(r'<p class="shops-note trial">(.*?)<a href="([^"]+)" rel="([^"]+)"[^>]*>([^<]+)</a>', books, re.S)
     assert len(trials) == 2 * books.count('class="more-shops"') > 0
     assert set((intro.strip(), href, rel, text) for intro, href, rel, text in trials) == {
@@ -489,37 +469,32 @@ def test_books_offer_a_kindle_unlimited_trial_under_the_ebook_shops(tmp_path):
          config.AFFILIATE_REL, "Try Audible")}
     popover = books.split('<div class="shops"', 2)[1]  # under the ebook shops, not the bookshops
     assert popover.index("Ebooks &amp; audiobooks") < popover.index("kindle-dbs")
-    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+    music = (tagged_site / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert "kindle-dbs" not in music and "hz/audible/mlp" not in music
 
 
-def test_about_page_offers_the_trials(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY, amazon_tag="test-21")
-    support = (tmp_path / "about" / "index.html").read_text(encoding="utf-8").split('id="support"', 1)[1].split("</section>", 1)[0]
+def test_about_page_offers_the_trials(tagged_site, site):
+    support = (tagged_site / "about" / "index.html").read_text(encoding="utf-8").split('id="support"', 1)[1].split("</section>", 1)[0]
     links = re.findall(r'<a href="([^"]+)" rel="([^"]+)" target="_blank">([^<]+)</a>', support)
     assert links == [("https://www.amazon.co.uk/kindle-dbs/hz/signup?tag=test-21", config.AFFILIATE_REL, "Kindle Unlimited"),
                      ("https://www.amazon.co.uk/hz/audible/mlp?tag=test-21", config.AFFILIATE_REL, "Audible"),
                      ("https://www.amazon.co.uk/unlimited?tag=test-21", config.AFFILIATE_REL, "Amazon Music Unlimited")]
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    about = (tmp_path / "about" / "index.html").read_text(encoding="utf-8")
+    about = (site / "about" / "index.html").read_text(encoding="utf-8")
     assert "kindle-dbs" not in about and "/unlimited" not in about and "hz/audible/mlp" not in about
 
 
-def test_no_music_trial_without_a_tag(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    music = (tmp_path / "music" / "rock" / "index.html").read_text(encoding="utf-8")
+def test_no_music_trial_without_a_tag(site):
+    music = (site / "music" / "rock" / "index.html").read_text(encoding="utf-8")
     assert "/unlimited" not in music and "These aren't affiliate links" in music
-    books = (tmp_path / "books" / "horror" / "index.html").read_text(encoding="utf-8")
+    books = (site / "books" / "horror" / "index.html").read_text(encoding="utf-8")
     assert "kindle-dbs" not in books and "hz/audible/mlp" not in books and "These aren't affiliate links" in books
 
 
-def test_kind_pages_give_the_real_total_and_explain_the_tile_counts(tmp_path):
-    releases = sample.releases(TODAY)
-    render.build(releases, datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
+def test_kind_pages_give_the_real_total_and_explain_the_tile_counts(site):
     for kind, noun in (("books", "books"), ("music", "albums")):
-        html = (tmp_path / kind / "index.html").read_text(encoding="utf-8")
+        html = (site / kind / "index.html").read_text(encoding="utf-8")
         shown = html.split('id="past-h"', 1)[1].count('<li class="card"')
         assert shown and f"<p>{shown} new {noun} from the last week, across all genres." in html
         assert f"Some {noun} are in more than one genre, so they&#39;re counted in each." in html             or f"Some {noun} are in more than one genre, so they're counted in each." in html
-    home = (tmp_path / "index.html").read_text(encoding="utf-8")
+    home = (site / "index.html").read_text(encoding="utf-8")
     assert home.count('class="tiles-note"') == 2

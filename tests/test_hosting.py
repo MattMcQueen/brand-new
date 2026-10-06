@@ -6,18 +6,16 @@ from brandnew import config, hosting, render, sample
 from test_render import TODAY, UK
 
 
-def test_config_written_with_headers_caching_and_404(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    cfg = json.loads((tmp_path / "staticwebapp.config.json").read_text(encoding="utf-8"))
-    assert cfg["responseOverrides"]["404"]["rewrite"] == "/404.html" and (tmp_path / "404.html").exists()
+def test_config_written_with_headers_caching_and_404(site):
+    cfg = json.loads((site / "staticwebapp.config.json").read_text(encoding="utf-8"))
+    assert cfg["responseOverrides"]["404"]["rewrite"] == "/404.html" and (site / "404.html").exists()
     assert "frame-src https://ko-fi.com" in cfg["globalHeaders"]["Content-Security-Policy"]
     assert hosting.headers_for("/static/style.css")["Cache-Control"].endswith("immutable")
     assert hosting.headers_for("/books/horror/")["Cache-Control"] == hosting.PAGE_CACHE
 
 
-def test_pages_have_nothing_inline_that_the_policy_would_block(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    for page in tmp_path.rglob("*.html"):
+def test_pages_have_nothing_inline_that_the_policy_would_block(site):
+    for page in site.rglob("*.html"):
         html = page.read_text(encoding="utf-8")
         assert "<script>" not in html, page                       # script-src 'self': files only
         assert not re.search(r"\son[a-z]+=", html), page           # no onerror=, onclick=...
@@ -58,7 +56,6 @@ def test_analytics_hosts_are_allowed():
     assert "connect-src 'self' https://cloudflareinsights.com" in hosting.CSP
 
 
-def test_bluesky_handle_file(tmp_path):
-    render.build(sample.releases(TODAY), datetime(2026, 9, 25, 5, 31, tzinfo=UK), tmp_path, TODAY)
-    assert (tmp_path / ".well-known" / "atproto-did").read_text(encoding="utf-8") == config.BLUESKY_DID
+def test_bluesky_handle_file(site):
+    assert (site / ".well-known" / "atproto-did").read_text(encoding="utf-8") == config.BLUESKY_DID
     assert config.BLUESKY_DID.startswith("did:plc:")
