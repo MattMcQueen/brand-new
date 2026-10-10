@@ -77,9 +77,11 @@ def test_default_tag_is_used(tmp_path, monkeypatch):
     assert "tag=matsbasblo-21" in html
 
 
-def test_build_refuses_thin_data(tmp_path):
+def test_build_refuses_thin_data(tmp_path, monkeypatch):
+    from brandnew import __main__ as cli
     from brandnew import store
     from brandnew.__main__ import main
+    monkeypatch.setattr(cli, "now_uk", lambda: datetime(2026, 9, 25, 5, 30, tzinfo=UK))  # build on TODAY, not the real date
     data = tmp_path / "r.json"
     store.save(data, sample.releases(TODAY), datetime(2026, 9, 25, 5, 0, tzinfo=UK))
     out = tmp_path / "dist"
@@ -344,9 +346,12 @@ def test_albums_without_a_cover_show_just_the_record(tmp_path):
     assert 'class="vinyl"' in card and "made-cover" not in card and "<img" not in card
 
 
-def test_older_data_with_isbn_links_builds_with_searches(tmp_path):
+def test_older_data_with_isbn_links_builds_with_searches(tmp_path, monkeypatch):
     """Data saved when UK editions linked straight to an ISBN page gets search links, like fresh data."""
+    from brandnew import __main__ as cli
     from brandnew.__main__ import main
+    # Build on TODAY: by the real date the book would fall out of "Out this week" and off the page.
+    monkeypatch.setattr(cli, "now_uk", lambda: datetime(2026, 9, 25, 5, 30, tzinfo=UK))
     old = {"kind": "books", "id": "9781529445282", "title": "The Thoroughbreds", "by": "Elin Hilderbrand",
            "date": TODAY.isoformat(), "source": "google-books", "publisher": "Hachette UK", "genres": ["horror"],
            "uk_edition": True, "amazon_url": "https://www.amazon.co.uk/dp/1529445280"}
